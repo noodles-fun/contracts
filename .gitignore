@@ -1,0 +1,18 @@
+node_modules
+.env
+
+# Local chain logs
+era_test_node.log
+
+# Hardhat files
+/artifacts
+/artifacts-zk
+/cache
+/cache-zk
+/deployments-zk/zkSyncEraTestNode
+/deployments-zk/localhost
+
+# TypeChain files
+/typechain
+/typechain-types
+

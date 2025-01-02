@@ -1,0 +1,21 @@
+{
+  "name": "noodles-contracts",
+  "scripts": {
+    "compile": "npx hardhat clean && npx hardhat compile",
+    "deploy": "npx hardhat deploy-zksync --script deploy.ts --network",
+    "test": "npx hardhat test",
+    "test-local": "npx hardhat test --network localhost"
+  },
+  "devDependencies": {
+    "@matterlabs/hardhat-zksync": "^1.3.0",
+    "@nomicfoundation/hardhat-chai-matchers": "^2.0.8",
+    "@nomicfoundation/hardhat-toolbox": "^5.0.0",
+    "@nomiclabs/hardhat-solhint": "^4.0.1",
+    "@openzeppelin/contracts": "^5.1.0",
+    "chai": "^4.3.6",
+    "dotenv": "^16.4.5",
+    "ethers": "^6.13.4",
+    "hardhat": "^2.22.16",
+    "zksync-ethers": "^6.15.1"
+  }
+}
