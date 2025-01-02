@@ -10,8 +10,8 @@
 
 ## Contracts
 
-| Contract               | Description                                                                                                      | Mainnet Address  | Testnet Address |
-|------------------------|------------------------------------------------------------------------------------------------------------------|------------------|-----------------|
+|Contract|Description|Mainnet address|Testnet address|
+|--------|--------------------|---------------|---------------|
 | **VisibilityCredits**  | Implements a bonding curve where token price = A × supply² + B × supply + basePrice. Price grows as supply grows | Coming Soon      | [0xd10c04ba41033cc91006381aaA6fc3e657F98Aa5](https://explorer.testnet.abs.xyz/address/0xd10c04ba41033cc91006381aaA6fc3e657F98Aa5)        |
 | **VisibilityServices** | Lets creators accept tokens for off-chain promotion services.                                                   | Coming Soon      | [0x71eE755BfFAeD9C5f7b99fEa64ae74de20e6b703](https://explorer.testnet.abs.xyz/address/0x71eE755BfFAeD9C5f7b99fEa64ae74de20e6b703#contract)        |
 
@@ -21,19 +21,13 @@
 
 ### Setup
 
-1. Copy environment variables:
-
-   ```bash
-   cp .env_example .env
-   ```
-
-2. Install packages:
+1. Install packages:
 
    ```bash
    npm install
    ```
 
-3. Compile:
+2. Compile:
 
    ```bash
    npm run compile
@@ -41,29 +35,35 @@
 
 ### Deploy
 
-For example, to deploy to the testnet (with your `.env` file set up properly):
+#### Configuration
 
-```bash
-npm run deploy abstractTestnet
-```
+Ensure you setup your `.env` file correctly. You can initialize it from the provided `.env.example` file:
+
+   ```bash
+   cp .env_example .env
+   ```
+
+#### Deploy to the Abstract Testnet
+
+   ```bash
+   npm run deploy abstractTestnet
+   ```
 
 ### Testing
-
-Run your unit tests:
 
 ```bash
 npm run test
 ```
 
-## Local Fork Testing
+### Local Fork Testing
 
-1. **Install Rust** (if not already installed):
+1. Install Rust (if not already installed):
 
    ```bash
    curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
    ```
 
-2. **Build the Local Node**:
+2. Build the local node:
 
    ```bash
    git clone https://github.com/matter-labs/era-test-node
@@ -78,13 +78,13 @@ npm run test
    sudo apt remove gcc-9 && sudo apt install clang
    ```
 
-3. **Run Forked Node**:
+3. Run forked node:
 
    ```bash
    ./target/release/anvil-zksync fork --fork-url https://api.testnet.abs.xyz
    ```
 
-4. **In Another Terminal, Run Tests**:
+4. In another terminal, run tests:
 
    ```bash
    npm run test-local
