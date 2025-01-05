@@ -1,9 +1,12 @@
 import * as dotenv from 'dotenv'
 import { HardhatUserConfig } from 'hardhat/config'
-import '@matterlabs/hardhat-zksync' // to uncomment if you have trouble with Solidity VSCode extension
 import '@matterlabs/hardhat-zksync-node/dist/type-extensions'
 import '@nomicfoundation/hardhat-toolbox'
 import '@nomicfoundation/hardhat-chai-matchers'
+
+// Comment these lines if you have troubles with Solidity VSCode extension (uncomment then when you need to compile/run/test)
+import '@matterlabs/hardhat-zksync' // to uncomment if you have trouble with Solidity VSCode extension
+import '@matterlabs/hardhat-zksync-upgradable'
 
 dotenv.config()
 
@@ -36,7 +39,7 @@ const config: HardhatUserConfig = {
     }
   },
   solidity: {
-    version: '0.8.20'
+    version: '0.8.26'
   }
 }
 

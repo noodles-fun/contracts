@@ -2,8 +2,8 @@
 pragma solidity ^0.8.20;
 
 import "@openzeppelin/contracts/utils/Address.sol";
-import "@openzeppelin/contracts/access/extensions/AccessControlDefaultAdminRules.sol";
-import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
+import "@openzeppelin/contracts-upgradeable/access/extensions/AccessControlDefaultAdminRulesUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/utils/ReentrancyGuardUpgradeable.sol";
 import "./interfaces/IVisibilityCredits.sol";
 
 /**
@@ -13,8 +13,8 @@ import "./interfaces/IVisibilityCredits.sol";
  */
 contract VisibilityCredits is
     IVisibilityCredits,
-    AccessControlDefaultAdminRules,
-    ReentrancyGuard
+    AccessControlDefaultAdminRulesUpgradeable,
+    ReentrancyGuardUpgradeable
 {
     /**
      * @notice Users can purchase and sell visibility credits according to a bonding curve.
@@ -40,8 +40,6 @@ contract VisibilityCredits is
     uint8 public constant PARTNER_FEE = 250; // 0.25% bonus for the partner/marketing agency if linked to a referrer (deduced from protocol fee)
     uint8 public constant PARTNER_REFERRER_BONUS = 250; // 0.25% bonus for the referrer if linked to a partner (deduced from protocol fee)
 
-    address payable public protocolTreasury;
-
     bytes32 public constant CREDITS_TRANSFER_ROLE =
         keccak256("CREDITS_TRANSFER_ROLE");
     bytes32 public constant CREATORS_LINKER_ROLE =
@@ -49,70 +47,84 @@ contract VisibilityCredits is
     bytes32 public constant PARTNERS_LINKER_ROLE =
         keccak256("PARTNERS_LINKER_ROLE");
 
-    /**
-     * @notice This contract is agnostic to specific visibility interfaces.
-     *         We define a naming convention for visibility IDs: `{platformPrefix}-{immutableId}`.
-     *         For example, `x-807982663000674305` links visibility credits to Luca Netz's X (formerly Twitter, rest_id = 807982663000674305) account.
-     *         This approach allows for easy extension to other platforms by using different prefixes.
-     *
-     * @dev Access a creator's visibility information using `visibilityCredits[visibilityId]`, where:
-     *      `bytes32 visibilityId = keccak256(abi.encode(visibilityIdString));`
-     */
-    mapping(bytes32 => Visibility) public visibilityCredits;
+    /// @custom:storage-location erc7201:noodles.VisibilityCredits
+    struct VisibilityCreditsStorage {
+        address payable protocolTreasury;
+        /**
+         * @notice Referrers can be linked to partners/marketing agencies to receive a fee bonus.
+         *         The bonus is a percentage of the trading cost, deducted from the protocol fee.
+         *         The bonus is split between the referrer and the partner.
+         * @dev referrer address => partner address
+         */
+        mapping(address => address) referrersToPartners;
+        /**
+         * @notice Record the last referral for each user. The referral still receives a bonus until the user trades with a new referrer.
+         *         The bonus is a percentage of the trading cost, deducted from the protocol fee.
+         * @dev user address => referrer address
+         */
+        mapping(address => address) usersToReferrers;
+        /**
+         * @notice This contract is agnostic to specific visibility interfaces.
+         *         We define a naming convention for visibility IDs: `{platformPrefix}-{immutableId}`.
+         *         For example, `x-807982663000674305` links visibility credits to Luca Netz's X (formerly Twitter, rest_id = 807982663000674305) account.
+         *         This approach allows for easy extension to other platforms by using different prefixes.
+         *
+         * @dev Access a creator's visibility information using `visibilityCredits[visibilityId]`, where:
+         *      `bytes32 visibilityId = keccak256(abi.encode(visibilityIdString));`
+         */
+        mapping(bytes32 => Visibility) visibilityCredits;
+    }
 
-    /**
-     * @notice Referrers can be linked to partners/marketing agencies to receive a fee bonus.
-     *         The bonus is a percentage of the trading cost, deducted from the protocol fee.
-     *         The bonus is split between the referrer and the partner.
-     * @dev referrer address => partner address
-     */
-    mapping(address => address) public referrersToPartners;
+    // keccak256(abi.encode(uint256(keccak256("noodles.VisibilityCredits")) - 1)) & ~bytes32(uint256(0xff))
+    bytes32 private constant VisibilityCreditsStorageLocation =
+        0x8b198ca743c7949447acc2a3ece04f744837fdfd02f0b1dab89bda5a49167b00;
 
-    /**
-     * @notice Record the last referral for each user. The referral still receives a bonus until the user trades with a new referrer.
-     *         The bonus is a percentage of the trading cost, deducted from the protocol fee.
-     * @dev user address => referrer address
-     */
-    mapping(address => address) public usersToReferrers;
+    function _getVisibilityCreditsStorage()
+        private
+        pure
+        returns (VisibilityCreditsStorage storage $)
+    {
+        assembly {
+            $.slot := VisibilityCreditsStorageLocation
+        }
+    }
 
-    event CreatorFeeClaimed(address indexed creator, uint256 amount);
-    event CreatorVisibilitySet(string visibilityId, address creator);
-    event CreditsTrade(CreditsTradeEvent tradeEvent);
-    event CreditsTransfer(
-        string visibilityId,
-        address indexed from,
-        address indexed to,
-        uint256 amount
-    );
-    event ReferrerPartnerSet(address referrer, address partner);
-
-    error InvalidAddress();
-    error InvalidCreator();
-    error InvalidAmount();
-    error NotEnoughEthSent();
-    error NotEnoughCreditsOwned();
+    /// @custom:oz-upgrades-unsafe-allow constructor
+    constructor() {
+        _disableInitializers();
+    }
 
     /**
      * @notice Initializes the contract with the protocol treasury, a creators linker and a partners linker.
-     * @param treasury The address of the protocol treasury.
+     * @param adminDelay The delay for admin role changes.
+     * @param admin The address than can manage with admin role.
      * @param creatorsLinker The address that can set a creator address for a specific visibility ID.
      * @param partnersLinker The address that can set a partner address for a referrer address.
+     * @param treasury The address of the protocol treasury.
      *
      * @dev Contract deployer is the default admin (`DEFAULT_ADMIN_ROLE`) at deployment.
      *      The `AccessControlDefaultAdminRules` contract manages admin access with a delay for changes.
      */
-    constructor(
-        address treasury,
+    function initialize(
+        uint48 adminDelay,
+        address admin,
         address creatorsLinker,
-        address partnersLinker
-    ) AccessControlDefaultAdminRules(3 days, msg.sender) {
-        if (treasury == address(0)) revert InvalidAddress();
+        address partnersLinker,
+        address treasury
+    ) public initializer {
+        if (admin == address(0)) revert InvalidAddress();
         if (creatorsLinker == address(0)) revert InvalidAddress();
         if (partnersLinker == address(0)) revert InvalidAddress();
+        if (treasury == address(0)) revert InvalidAddress();
 
-        protocolTreasury = payable(treasury);
+        VisibilityCreditsStorage storage $ = _getVisibilityCreditsStorage();
+        $.protocolTreasury = payable(treasury);
+
+        __AccessControlDefaultAdminRules_init_unchained(adminDelay, admin);
         _grantRole(CREATORS_LINKER_ROLE, creatorsLinker);
         _grantRole(PARTNERS_LINKER_ROLE, partnersLinker);
+
+        __ReentrancyGuard_init_unchained();
     }
 
     /**
@@ -127,7 +139,9 @@ contract VisibilityCredits is
         uint256 amount,
         address inputReferrer
     ) external payable nonReentrant {
-        Visibility storage visibility = visibilityCredits[
+        VisibilityCreditsStorage storage $ = _getVisibilityCreditsStorage();
+
+        Visibility storage visibility = $.visibilityCredits[
             getVisibilityKey(visibilityId)
         ];
 
@@ -161,8 +175,8 @@ contract VisibilityCredits is
         visibility.claimableFeeBalance += trade.creatorFee;
         visibility.creditBalances[msg.sender] += amount;
 
-        if (trade.referrer != usersToReferrers[msg.sender]) {
-            usersToReferrers[msg.sender] = trade.referrer;
+        if (trade.referrer != $.usersToReferrers[msg.sender]) {
+            $.usersToReferrers[msg.sender] = trade.referrer;
         }
 
         if (trade.referrerFee > 0) {
@@ -173,7 +187,7 @@ contract VisibilityCredits is
             Address.sendValue(payable(trade.partner), trade.partnerFee);
         }
 
-        Address.sendValue(protocolTreasury, trade.protocolFee);
+        Address.sendValue($.protocolTreasury, trade.protocolFee);
 
         // Refund excess Ether sent
         if (msg.value > totalCost) {
@@ -210,7 +224,8 @@ contract VisibilityCredits is
         uint256 amount,
         address inputReferrer
     ) external nonReentrant {
-        Visibility storage visibility = visibilityCredits[
+        VisibilityCreditsStorage storage $ = _getVisibilityCreditsStorage();
+        Visibility storage visibility = $.visibilityCredits[
             getVisibilityKey(visibilityId)
         ];
 
@@ -240,8 +255,8 @@ contract VisibilityCredits is
         visibility.claimableFeeBalance += trade.creatorFee;
         visibility.creditBalances[msg.sender] -= amount;
 
-        if (trade.referrer != usersToReferrers[msg.sender]) {
-            usersToReferrers[msg.sender] = trade.referrer;
+        if (trade.referrer != $.usersToReferrers[msg.sender]) {
+            $.usersToReferrers[msg.sender] = trade.referrer;
         }
 
         if (trade.referrerFee > 0) {
@@ -252,7 +267,7 @@ contract VisibilityCredits is
             Address.sendValue(payable(trade.partner), trade.partnerFee);
         }
 
-        Address.sendValue(protocolTreasury, trade.protocolFee);
+        Address.sendValue($.protocolTreasury, trade.protocolFee);
 
         Address.sendValue(payable(msg.sender), reimbursement);
 
@@ -281,7 +296,8 @@ contract VisibilityCredits is
     function claimCreatorFee(
         string calldata visibilityId
     ) external nonReentrant {
-        Visibility storage visibility = visibilityCredits[
+        VisibilityCreditsStorage storage $ = _getVisibilityCreditsStorage();
+        Visibility storage visibility = $.visibilityCredits[
             getVisibilityKey(visibilityId)
         ];
 
@@ -325,7 +341,8 @@ contract VisibilityCredits is
         string calldata visibilityId,
         address creator
     ) external onlyRole(CREATORS_LINKER_ROLE) {
-        Visibility storage visibility = visibilityCredits[
+        VisibilityCreditsStorage storage $ = _getVisibilityCreditsStorage();
+        Visibility storage visibility = $.visibilityCredits[
             getVisibilityKey(visibilityId)
         ];
         visibility.creator = creator;
@@ -343,10 +360,11 @@ contract VisibilityCredits is
         address referrer,
         address partner
     ) external onlyRole(PARTNERS_LINKER_ROLE) {
+        VisibilityCreditsStorage storage $ = _getVisibilityCreditsStorage();
         if (referrer == address(0)) {
             revert InvalidAddress();
         }
-        referrersToPartners[referrer] = partner;
+        $.referrersToPartners[referrer] = partner;
 
         emit ReferrerPartnerSet(referrer, partner);
     }
@@ -365,7 +383,8 @@ contract VisibilityCredits is
         address to,
         uint256 amount
     ) external onlyRole(CREDITS_TRANSFER_ROLE) {
-        Visibility storage visibility = visibilityCredits[
+        VisibilityCreditsStorage storage $ = _getVisibilityCreditsStorage();
+        Visibility storage visibility = $.visibilityCredits[
             getVisibilityKey(visibilityId)
         ];
 
@@ -387,10 +406,28 @@ contract VisibilityCredits is
     function updateTreasury(
         address treasury
     ) external onlyRole(DEFAULT_ADMIN_ROLE) {
+        VisibilityCreditsStorage storage $ = _getVisibilityCreditsStorage();
         if (treasury == address(0)) {
             revert InvalidAddress();
         }
-        protocolTreasury = payable(treasury);
+        $.protocolTreasury = payable(treasury);
+    }
+
+    function getProtocolTreasury() external view returns (address) {
+        VisibilityCreditsStorage storage $ = _getVisibilityCreditsStorage();
+        return $.protocolTreasury;
+    }
+
+    function getReferrerPartner(
+        address referrer
+    ) external view returns (address) {
+        VisibilityCreditsStorage storage $ = _getVisibilityCreditsStorage();
+        return $.referrersToPartners[referrer];
+    }
+
+    function getUserReferrer(address user) external view returns (address) {
+        VisibilityCreditsStorage storage $ = _getVisibilityCreditsStorage();
+        return $.usersToReferrers[user];
     }
 
     function getVisibility(
@@ -404,7 +441,8 @@ contract VisibilityCredits is
             uint256 claimableFeeBalance
         )
     {
-        Visibility storage visibility = visibilityCredits[
+        VisibilityCreditsStorage storage $ = _getVisibilityCreditsStorage();
+        Visibility storage visibility = $.visibilityCredits[
             getVisibilityKey(visibilityId)
         ];
         return (
@@ -418,22 +456,13 @@ contract VisibilityCredits is
         string calldata visibilityId,
         address account
     ) external view returns (uint256) {
+        VisibilityCreditsStorage storage $ = _getVisibilityCreditsStorage();
+
         return
-            visibilityCredits[getVisibilityKey(visibilityId)].creditBalances[
+            $.visibilityCredits[getVisibilityKey(visibilityId)].creditBalances[
                 account
             ];
     }
-
-    /*
-    function getVisibilityCurrentPrice(
-        string calldata visibilityId
-    ) external view returns (uint256) {
-        return
-            _getCurrentPrice(
-                visibilityCredits[getVisibilityKey(visibilityId)].totalSupply
-            );
-    }
-    */
 
     function buyCostWithFees(
         string calldata visibilityId,
@@ -441,7 +470,9 @@ contract VisibilityCredits is
         address user,
         address inputReferrer
     ) external view returns (uint256 totalCost, Trade memory trade) {
-        uint256 totalSupply = visibilityCredits[getVisibilityKey(visibilityId)]
+        VisibilityCreditsStorage storage $ = _getVisibilityCreditsStorage();
+        uint256 totalSupply = $
+            .visibilityCredits[getVisibilityKey(visibilityId)]
             .totalSupply;
         trade = _tradeCostWithFees(
             totalSupply,
@@ -464,7 +495,9 @@ contract VisibilityCredits is
         address user,
         address inputReferrer
     ) external view returns (uint256 reimbursement, Trade memory trade) {
-        uint256 totalSupply = visibilityCredits[getVisibilityKey(visibilityId)]
+        VisibilityCreditsStorage storage $ = _getVisibilityCreditsStorage();
+        uint256 totalSupply = $
+            .visibilityCredits[getVisibilityKey(visibilityId)]
             .totalSupply;
 
         trade = _tradeCostWithFees(
@@ -496,6 +529,8 @@ contract VisibilityCredits is
         address user,
         address inputReferrer
     ) private view returns (Trade memory trade) {
+        VisibilityCreditsStorage storage $ = _getVisibilityCreditsStorage();
+
         if (!isBuy) {
             if (totalSupply < amount) {
                 revert InvalidAmount();
@@ -514,10 +549,10 @@ contract VisibilityCredits is
 
         trade.referrer = inputReferrer != address(0)
             ? inputReferrer
-            : usersToReferrers[user];
+            : $.usersToReferrers[user];
 
         trade.partner = trade.referrer != address(0)
-            ? referrersToPartners[trade.referrer]
+            ? $.referrersToPartners[trade.referrer]
             : address(0);
 
         if (trade.partner != address(0)) {

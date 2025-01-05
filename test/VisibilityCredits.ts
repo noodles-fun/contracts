@@ -2,8 +2,8 @@ import { expect } from 'chai'
 import { ContractTransactionResponse, parseEther, ZeroAddress } from 'ethers'
 import { loadFixture } from '@nomicfoundation/hardhat-network-helpers'
 import { Provider, Wallet } from 'zksync-ethers'
-import { VisibilityCredits } from '../typechain-types'
-import { deployContract, getWallets, getProvider } from '../utils'
+import { ProxyAdmin__factory, VisibilityCredits } from '../typechain-types'
+import { deployProxyContract, getWallets, getProvider } from '../utils'
 
 describe('VisibilityCredits', function () {
   const visibilityId1 = 'x-807982663000674305' // @LucaNetz on X
@@ -14,6 +14,7 @@ describe('VisibilityCredits', function () {
   let creditsContract: VisibilityCredits
 
   let deployer: Wallet
+  let admin: Wallet
   let creator1: Wallet
   let user1: Wallet
   let user2: Wallet
@@ -23,9 +24,12 @@ describe('VisibilityCredits', function () {
   let referrer: Wallet
   let partner: Wallet
 
+  const adminDelay = 60 * 60 * 24 * 3 // 3 days
+
   async function deployFixture() {
     ;[
       deployer,
+      admin,
       creator1,
       user1,
       user2,
@@ -38,12 +42,14 @@ describe('VisibilityCredits', function () {
 
     provider = await getProvider()
 
-    creditsContract = (await deployContract(
+    creditsContract = (await deployProxyContract(
       'VisibilityCredits',
       [
-        await treasury.getAddress(),
+        adminDelay,
+        await admin.getAddress(),
         await creatorsLinker.getAddress(),
-        await partnersLinker.getAddress()
+        await partnersLinker.getAddress(),
+        await treasury.getAddress()
       ],
       { wallet: deployer, silent: true }
     )) as unknown as VisibilityCredits
@@ -60,8 +66,8 @@ describe('VisibilityCredits', function () {
   describe('Initial Setup', function () {
     it('Should set the correct protocol treasury', async function () {
       await loadFixture(deployFixture)
-      await creditsContract.protocolTreasury()
-      expect(await creditsContract.protocolTreasury()).to.be.equal(
+      await creditsContract.getProtocolTreasury()
+      expect(await creditsContract.getProtocolTreasury()).to.be.equal(
         treasury.address
       )
     })
@@ -292,7 +298,7 @@ describe('VisibilityCredits', function () {
 
       // Grant role
       tx = await creditsContract
-        .connect(deployer)
+        .connect(admin)
         .grantCreatorTransferRole(user1.address)
       await tx.wait()
 
@@ -372,8 +378,9 @@ describe('VisibilityCredits', function () {
       const treasuryBalanceBefore = await provider.getBalance(
         await treasury.getAddress()
       )
-      const [, , claimBalanceBefore] =
-        await creditsContract.getVisibility(visibilityId1)
+      const [, , claimBalanceBefore] = await creditsContract.getVisibility(
+        visibilityId1
+      )
       const visibilityBalanceBefore =
         await creditsContract.getVisibilityCreditBalance(
           visibilityId1,
@@ -391,8 +398,9 @@ describe('VisibilityCredits', function () {
       const treasuryBalanceAfterBuy = await provider.getBalance(
         await treasury.getAddress()
       )
-      const [, , claimBalanceAfterBuy] =
-        await creditsContract.getVisibility(visibilityId1)
+      const [, , claimBalanceAfterBuy] = await creditsContract.getVisibility(
+        visibilityId1
+      )
       const visibilityBalanceAfterBuy =
         await creditsContract.getVisibilityCreditBalance(
           visibilityId1,
@@ -461,8 +469,9 @@ describe('VisibilityCredits', function () {
       const treasuryBalanceAfterSell = await provider.getBalance(
         await treasury.getAddress()
       )
-      const [, , claimBalanceAfterSell] =
-        await creditsContract.getVisibility(visibilityId1)
+      const [, , claimBalanceAfterSell] = await creditsContract.getVisibility(
+        visibilityId1
+      )
       const visibilityBalanceAfterSell =
         await creditsContract.getVisibilityCreditBalance(
           visibilityId1,
@@ -537,8 +546,9 @@ describe('VisibilityCredits', function () {
       const referrerBalanceBefore = await provider.getBalance(
         await referrer.getAddress()
       )
-      const [, , claimBalanceBefore] =
-        await creditsContract.getVisibility(visibilityId1)
+      const [, , claimBalanceBefore] = await creditsContract.getVisibility(
+        visibilityId1
+      )
       const visibilityBalanceBefore =
         await creditsContract.getVisibilityCreditBalance(
           visibilityId1,
@@ -559,8 +569,9 @@ describe('VisibilityCredits', function () {
       const referrerBalanceAfterBuy = await provider.getBalance(
         await referrer.getAddress()
       )
-      const [, , claimBalanceAfterBuy] =
-        await creditsContract.getVisibility(visibilityId1)
+      const [, , claimBalanceAfterBuy] = await creditsContract.getVisibility(
+        visibilityId1
+      )
       const visibilityBalanceAfterBuy =
         await creditsContract.getVisibilityCreditBalance(
           visibilityId1,
@@ -641,8 +652,9 @@ describe('VisibilityCredits', function () {
       const referrerBalanceAfterSell = await provider.getBalance(
         await referrer.getAddress()
       )
-      const [, , claimBalanceAfterSell] =
-        await creditsContract.getVisibility(visibilityId1)
+      const [, , claimBalanceAfterSell] = await creditsContract.getVisibility(
+        visibilityId1
+      )
       const visibilityBalanceAfterSell =
         await creditsContract.getVisibilityCreditBalance(
           visibilityId1,
@@ -736,8 +748,9 @@ describe('VisibilityCredits', function () {
       const partnerBalanceBefore = await provider.getBalance(
         await partner.getAddress()
       )
-      const [, , claimBalanceBefore] =
-        await creditsContract.getVisibility(visibilityId1)
+      const [, , claimBalanceBefore] = await creditsContract.getVisibility(
+        visibilityId1
+      )
       const visibilityBalanceBefore =
         await creditsContract.getVisibilityCreditBalance(
           visibilityId1,
@@ -761,8 +774,9 @@ describe('VisibilityCredits', function () {
       const partnerBalanceAfterBuy = await provider.getBalance(
         await partner.getAddress()
       )
-      const [, , claimBalanceAfterBuy] =
-        await creditsContract.getVisibility(visibilityId1)
+      const [, , claimBalanceAfterBuy] = await creditsContract.getVisibility(
+        visibilityId1
+      )
       const visibilityBalanceAfterBuy =
         await creditsContract.getVisibilityCreditBalance(
           visibilityId1,
@@ -857,8 +871,9 @@ describe('VisibilityCredits', function () {
       const partnerBalanceAfterSell = await provider.getBalance(
         await partner.getAddress()
       )
-      const [, , claimBalanceAfterSell] =
-        await creditsContract.getVisibility(visibilityId1)
+      const [, , claimBalanceAfterSell] = await creditsContract.getVisibility(
+        visibilityId1
+      )
       const visibilityBalanceAfterSell =
         await creditsContract.getVisibilityCreditBalance(
           visibilityId1,
@@ -932,14 +947,16 @@ describe('VisibilityCredits', function () {
       )
 
       // Admin updates
-      tx = await creditsContract.connect(deployer).updateTreasury(user2.address)
+      tx = await creditsContract.connect(admin).updateTreasury(user2.address)
       await tx.wait()
 
-      expect(await creditsContract.protocolTreasury()).to.equal(user2.address)
+      expect(await creditsContract.getProtocolTreasury()).to.equal(
+        user2.address
+      )
 
       // Zero address => revert
       await expect(
-        creditsContract.connect(deployer).updateTreasury(ZeroAddress)
+        creditsContract.connect(admin).updateTreasury(ZeroAddress)
       ).to.be.revertedWithCustomError(creditsContract, 'InvalidAddress')
     })
 
@@ -964,7 +981,7 @@ describe('VisibilityCredits', function () {
 
       // Only the admin (deployer) can call updateTreasury
       await expect(
-        creditsContract.connect(deployer).updateTreasury(ZeroAddress)
+        creditsContract.connect(admin).updateTreasury(ZeroAddress)
       ).to.be.revertedWithCustomError(creditsContract, 'InvalidAddress')
     })
 
@@ -974,11 +991,11 @@ describe('VisibilityCredits', function () {
       // Should succeed with a valid address
       await expect(
         creditsContract
-          .connect(deployer)
+          .connect(admin)
           .updateTreasury(await creatorsLinker.getAddress())
       ).not.to.be.reverted
 
-      expect(await creditsContract.protocolTreasury()).to.be.equal(
+      expect(await creditsContract.getProtocolTreasury()).to.be.equal(
         await creatorsLinker.getAddress()
       )
     })
@@ -1125,7 +1142,7 @@ describe('VisibilityCredits', function () {
       await loadFixture(deployFixture)
 
       tx = await creditsContract
-        .connect(deployer)
+        .connect(admin)
         .grantCreatorTransferRole(user1.address)
       await tx.wait()
 
@@ -1135,9 +1152,7 @@ describe('VisibilityCredits', function () {
         true
       )
 
-      tx = await creditsContract
-        .connect(deployer)
-        .revokeRole(role, user1.address)
+      tx = await creditsContract.connect(admin).revokeRole(role, user1.address)
       await tx.wait()
 
       expect(await creditsContract.hasRole(role, user1.address)).to.be.equal(

@@ -1,8 +1,9 @@
 node_modules
 .env
 
-# Local chain logs
+# Local chain data
 era_test_node.log
+.upgradable/ZKsync-era-test-node.json
 
 # Hardhat files
 /artifacts

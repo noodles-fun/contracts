@@ -12,8 +12,8 @@
 
 |Contract|Description|Mainnet address|Testnet address|
 |--------|--------------------|---------------|---------------|
-| **VisibilityCredits**  | Implements a bonding curve where token price = A × supply² + B × supply + basePrice. Price grows as supply grows | Coming Soon      | [0xd10c04ba41033cc91006381aaA6fc3e657F98Aa5](https://explorer.testnet.abs.xyz/address/0xd10c04ba41033cc91006381aaA6fc3e657F98Aa5)        |
-| **VisibilityServices** | Lets creators accept tokens for off-chain promotion services.                                                   | Coming Soon      | [0x71eE755BfFAeD9C5f7b99fEa64ae74de20e6b703](https://explorer.testnet.abs.xyz/address/0x71eE755BfFAeD9C5f7b99fEa64ae74de20e6b703#contract)        |
+| **VisibilityCredits**  | Implements a bonding curve where token price = A × supply² + B × supply + basePrice. Price grows as supply grows | Coming Soon      | [0x1B644f436A3F8eA250b95577A8cDFD020615c187](https://explorer.testnet.abs.xyz/address/0x1B644f436A3F8eA250b95577A8cDFD020615c187)        |
+| **VisibilityServices** | Lets creators accept tokens for off-chain promotion services.                                                   | Coming Soon      | [0x77aEb1C5c5e2d29b0d9278748C7E70178d1Ec1f0](https://explorer.testnet.abs.xyz/address/0x77aEb1C5c5e2d29b0d9278748C7E70178d1Ec1f0#contract)        |
 
 ---
 
@@ -81,11 +81,11 @@ npm run test
 3. Run forked node:
 
    ```bash
-   ./target/release/anvil-zksync fork --fork-url https://api.testnet.abs.xyz
+   ./target/release/anvil-zksync fork --fork-url https://api.testnet.abs.xyz --fork-block-number 3558125
    ```
 
 4. In another terminal, run tests:
 
    ```bash
-   npm run test-local
+   npm run test-fork-localhost
    ```

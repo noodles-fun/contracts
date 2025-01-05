@@ -1,8 +1,12 @@
 import { expect } from 'chai'
 import { ContractTransactionResponse, parseEther, ZeroAddress } from 'ethers'
 import { loadFixture } from '@nomicfoundation/hardhat-network-helpers'
-import { VisibilityCredits, VisibilityServices } from '../typechain-types'
-import { deployContract, getWallets, getProvider } from '../utils'
+import {
+  ProxyAdmin__factory,
+  VisibilityCredits,
+  VisibilityServices
+} from '../typechain-types'
+import { deployProxyContract, getWallets, getProvider } from '../utils'
 import { Provider, Wallet } from 'zksync-ethers'
 
 describe('VisibilityServices', function () {
@@ -15,32 +19,52 @@ describe('VisibilityServices', function () {
   let visibilityCredits: VisibilityCredits
 
   let deployer: Wallet
+  let admin: Wallet
+  let creator: Wallet
   let disputeResolver: Wallet
   let user1: Wallet
   let user2: Wallet
-  let creator: Wallet
+  let creatorsLinker: Wallet
+  let partnersLinker: Wallet
+  let treasury: Wallet
+
+  const adminDelay = 60 * 60 * 24 * 3 // 3 days
 
   async function deployFixture() {
-    ;[deployer, disputeResolver, user1, user2, creator] = getWallets()
+    ;[
+      deployer,
+      admin,
+      creator,
+      disputeResolver,
+      user1,
+      user2,
+      creatorsLinker,
+      partnersLinker,
+      treasury
+    ] = getWallets()
 
     provider = await getProvider()
 
-    visibilityCredits = (await deployContract(
+    visibilityCredits = (await deployProxyContract(
       'VisibilityCredits',
       [
-        await deployer.getAddress(),
-        await deployer.getAddress(),
-        await deployer.getAddress()
+        adminDelay,
+        await admin.getAddress(),
+        await creatorsLinker.getAddress(),
+        await partnersLinker.getAddress(),
+        await treasury.getAddress()
       ],
       { wallet: deployer, silent: true }
     )) as unknown as VisibilityCredits
 
     await visibilityCredits.waitForDeployment()
 
-    visibilityServices = (await deployContract(
+    visibilityServices = (await deployProxyContract(
       'VisibilityServices',
       [
         await visibilityCredits.getAddress(),
+        adminDelay,
+        await admin.getAddress(),
         await disputeResolver.getAddress()
       ],
       { wallet: deployer, silent: true }
@@ -50,7 +74,7 @@ describe('VisibilityServices', function () {
 
     // Grant creator role to `creator`
     tx = await visibilityCredits
-      .connect(deployer)
+      .connect(creatorsLinker)
       .setCreatorVisibility(visibilityId1, await creator.getAddress())
     await tx.wait()
 
@@ -60,9 +84,9 @@ describe('VisibilityServices', function () {
     await tx.wait()
 
     // Authorize visibilityServices to manage credits
-    tx = await visibilityCredits.grantCreatorTransferRole(
-      await visibilityServices.getAddress()
-    )
+    tx = await visibilityCredits
+      .connect(admin)
+      .grantCreatorTransferRole(await visibilityServices.getAddress())
     await tx.wait()
   }
 
@@ -81,7 +105,7 @@ describe('VisibilityServices', function () {
     it('Should deploy contracts correctly and set initial values', async function () {
       await loadFixture(deployFixture)
 
-      expect(await visibilityServices.visibilityCredits()).to.equal(
+      expect(await visibilityServices.getVisibilityCreditsContract()).to.equal(
         await visibilityCredits.getAddress()
       )
     })
@@ -103,12 +127,13 @@ describe('VisibilityServices', function () {
     it('Should create a service successfully', async function () {
       await loadFixture(deployFixture)
 
-      const service = await visibilityServices.services(0)
+      const [enabled, serviceType, visibilityId, creditsCostAmount] =
+        await visibilityServices.getService(0)
 
-      expect(service.enabled).to.equal(true)
-      expect(service.serviceType).to.equal('x-post')
-      expect(service.visibilityId).to.equal(visibilityId1)
-      expect(service.creditsCostAmount).to.equal(10)
+      expect(enabled).to.equal(true)
+      expect(serviceType).to.equal('x-post')
+      expect(visibilityId).to.equal(visibilityId1)
+      expect(creditsCostAmount).to.equal(10)
     })
 
     it('Should update a service successfully', async function () {
@@ -116,10 +141,9 @@ describe('VisibilityServices', function () {
 
       tx = await visibilityServices.connect(creator).updateService(0, false)
       await tx.wait()
+      const [enabled] = await visibilityServices.getService(0)
 
-      const service = await visibilityServices.services(0)
-
-      expect(service.enabled).to.equal(false)
+      expect(enabled).to.equal(false)
     })
 
     it('Should revert if non-creator tries to create a service', async function () {

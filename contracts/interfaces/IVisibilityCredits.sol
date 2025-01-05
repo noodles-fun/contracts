@@ -34,6 +34,23 @@ interface IVisibilityCredits {
         mapping(address => uint256) creditBalances;
     }
 
+    event CreatorFeeClaimed(address indexed creator, uint256 amount);
+    event CreatorVisibilitySet(string visibilityId, address creator);
+    event CreditsTrade(CreditsTradeEvent tradeEvent);
+    event CreditsTransfer(
+        string visibilityId,
+        address indexed from,
+        address indexed to,
+        uint256 amount
+    );
+    event ReferrerPartnerSet(address referrer, address partner);
+
+    error InvalidAddress();
+    error InvalidCreator();
+    error InvalidAmount();
+    error NotEnoughEthSent();
+    error NotEnoughCreditsOwned();
+
     function buyCredits(
         string calldata visibilityId,
         uint256 amount,
@@ -63,6 +80,14 @@ interface IVisibilityCredits {
     ) external;
 
     function updateTreasury(address treasury) external;
+
+    function getProtocolTreasury() external view returns (address);
+
+    function getReferrerPartner(
+        address referrer
+    ) external view returns (address);
+
+    function getUserReferrer(address user) external view returns (address);
 
     function getVisibility(
         string calldata visibilityId
