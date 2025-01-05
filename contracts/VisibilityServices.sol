@@ -1,105 +1,70 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
 
-import "@openzeppelin/contracts/access/extensions/AccessControlDefaultAdminRules.sol";
+import "@openzeppelin/contracts-upgradeable/access/extensions/AccessControlDefaultAdminRulesUpgradeable.sol";
 import "./interfaces/IVisibilityCredits.sol";
+import "./interfaces/IVisibilityServices.sol";
 
 /**
  * @title VisibilityServices
  * @notice Allows users to spend creator credits (from IVisibilityCredits), for ad purposes.
  */
-contract VisibilityServices is AccessControlDefaultAdminRules {
-    enum ExecutionState {
-        UNINITIALIZED,
-        REQUESTED,
-        ACCEPTED,
-        DISPUTED,
-        REFUNDED,
-        VALIDATED
-    }
-
-    struct Execution {
-        ExecutionState state; // Current state of the execution
-        address requester; // Address that requested the service execution
-        uint256 lastUpdateTimestamp;
-    }
-
-    struct Service {
-        bool enabled; // Indicates if the service is active, if it can be requested
-        string serviceType; // Service type identifier (e.g., "x-post" for post publication)
-        string visibilityId; // Visibility identifier (e.g., "x-807982663000674305" for specific accounts)
-        uint256 creditsCostAmount; // Cost in credits for the service
-        uint256 executionsNonce; // Counter for execution IDs
-        mapping(uint256 => Execution) executions; // Mapping of executions by nonce
-    }
-
+contract VisibilityServices is
+    AccessControlDefaultAdminRulesUpgradeable,
+    IVisibilityServices
+{
     uint256 public constant AUTO_VALIDATION_DELAY = 5 days;
 
     bytes32 public constant DISPUTE_RESOLVER_ROLE =
         keccak256("DISPUTE_RESOLVER_ROLE");
 
-    IVisibilityCredits public immutable visibilityCredits;
+    /// @custom:storage-location erc7201:noodles.VisibilityServices
+    struct VisibilityServicesStorage {
+        IVisibilityCredits visibilityCredits;
+        uint256 servicesNonce; // Counter for service IDs
+        mapping(uint256 => Service) services; // Mapping of services by nonce
+    }
 
-    uint256 public servicesNonce; // Counter for service IDs
-    mapping(uint256 => Service) public services; // Mapping of services by nonce
+    // keccak256(abi.encode(uint256(keccak256("noodles.VisibilityServices")) - 1)) & ~bytes32(uint256(0xff))
+    bytes32 private constant VisibilityServicesStorageLocation =
+        0x523cffa5e7f48f8e220488f534837697930b9986fe2a9046bebda6761fdc0000;
 
-    event ServiceCreated(
-        uint256 indexed nonce,
-        string serviceType,
-        string visibilityId,
-        uint256 creditsCostAmount
-    );
-    event ServiceUpdated(uint256 indexed nonce, bool enabled);
-    event ServiceExecutionRequested(
-        uint256 indexed serviceNonce,
-        uint256 indexed executionNonce,
-        address indexed requester,
-        string requestData
-    );
-    event ServiceExecutionCanceled(
-        uint256 indexed serviceNonce,
-        uint256 indexed executionNonce,
-        address indexed from,
-        string cancelData
-    );
-    event ServiceExecutionAccepted(
-        uint256 indexed serviceNonce,
-        uint256 indexed executionNonce,
-        string responseData
-    );
-    event ServiceExecutionValidated(
-        uint256 indexed serviceNonce,
-        uint256 indexed executionNonce
-    );
-    event ServiceExecutionDisputed(
-        uint256 indexed serviceNonce,
-        uint256 indexed executionNonce,
-        string disputeData
-    );
-    event ServiceExecutionResolved(
-        uint256 indexed serviceNonce,
-        uint256 indexed executionNonce,
-        bool refund,
-        string resolveData
-    );
+    function _getVisibilityServicesStorage()
+        private
+        pure
+        returns (VisibilityServicesStorage storage $)
+    {
+        assembly {
+            $.slot := VisibilityServicesStorageLocation
+        }
+    }
 
-    error DisabledService();
-    error InvalidCreator();
-    error InvalidExecutionState();
-    error UnauthorizedExecutionAction();
+    /// @custom:oz-upgrades-unsafe-allow constructor
+    constructor() {
+        _disableInitializers();
+    }
 
     /**
      * @dev Constructor to initialize the contract.
      *
-     * @param _visibilityCredits Address of the IVisibilityCredits contract.
+     * @param visibilityCredits Address of the IVisibilityCredits contract.
+     * @param adminDelay Delay for the admin role.
+     * @param admin Address for the admin role.
      * @param disputeResolver Address for the dispute resolver role.
      */
-    constructor(
-        address _visibilityCredits,
+    function initialize(
+        address visibilityCredits,
+        uint48 adminDelay,
+        address admin,
         address disputeResolver
-    ) AccessControlDefaultAdminRules(3 days, msg.sender) {
+    ) public initializer {
+        if (visibilityCredits == address(0)) revert InvalidAddress();
+
+        VisibilityServicesStorage storage $ = _getVisibilityServicesStorage();
+        $.visibilityCredits = IVisibilityCredits(visibilityCredits);
+
+        __AccessControlDefaultAdminRules_init_unchained(adminDelay, admin);
         _grantRole(DISPUTE_RESOLVER_ROLE, disputeResolver);
-        visibilityCredits = IVisibilityCredits(_visibilityCredits);
     }
 
     /**
@@ -114,17 +79,19 @@ contract VisibilityServices is AccessControlDefaultAdminRules {
         string memory visibilityId,
         uint256 creditsCostAmount
     ) external {
-        (address creator, , ) = visibilityCredits.getVisibility(visibilityId);
+        VisibilityServicesStorage storage $ = _getVisibilityServicesStorage();
+        (address creator, , ) = $.visibilityCredits.getVisibility(visibilityId);
         if (creator != msg.sender) revert InvalidCreator();
 
-        uint256 nonce = servicesNonce;
-        services[nonce].enabled = true;
-        services[nonce].serviceType = serviceType;
-        services[nonce].visibilityId = visibilityId;
-        services[nonce].creditsCostAmount = creditsCostAmount;
-        services[nonce].executionsNonce = 0;
+        uint256 nonce = $.servicesNonce;
+        $.services[nonce].enabled = true;
+        $.services[nonce].serviceType = serviceType;
+        $.services[nonce].visibilityId = visibilityId;
+        $.services[nonce].creditsCostAmount = creditsCostAmount;
+        $.services[nonce].executionsNonce = 0;
 
-        servicesNonce += 1;
+        $.servicesNonce += 1;
+
         emit ServiceCreated(
             nonce,
             serviceType,
@@ -140,10 +107,12 @@ contract VisibilityServices is AccessControlDefaultAdminRules {
      * @param enabled The new status of the service (true for enabled, false for disabled).
      */
     function updateService(uint256 serviceNonce, bool enabled) external {
-        Service storage service = services[serviceNonce];
+        VisibilityServicesStorage storage $ = _getVisibilityServicesStorage();
+
+        Service storage service = $.services[serviceNonce];
         string memory visibilityId = service.visibilityId;
 
-        (address creator, , ) = visibilityCredits.getVisibility(visibilityId);
+        (address creator, , ) = $.visibilityCredits.getVisibility(visibilityId);
         if (creator != msg.sender) revert InvalidCreator();
 
         service.enabled = enabled;
@@ -160,7 +129,9 @@ contract VisibilityServices is AccessControlDefaultAdminRules {
         uint256 serviceNonce,
         string calldata requestData
     ) external {
-        Service storage service = services[serviceNonce];
+        VisibilityServicesStorage storage $ = _getVisibilityServicesStorage();
+
+        Service storage service = $.services[serviceNonce];
         if (!service.enabled) revert DisabledService();
 
         uint256 executionNonce = service.executionsNonce;
@@ -170,7 +141,7 @@ contract VisibilityServices is AccessControlDefaultAdminRules {
             .timestamp;
 
         service.executionsNonce += 1;
-        visibilityCredits.transferCredits(
+        $.visibilityCredits.transferCredits(
             service.visibilityId,
             msg.sender,
             address(this),
@@ -197,14 +168,16 @@ contract VisibilityServices is AccessControlDefaultAdminRules {
         uint256 executionNonce,
         string calldata responseData
     ) external {
-        Service storage service = services[serviceNonce];
+        VisibilityServicesStorage storage $ = _getVisibilityServicesStorage();
+
+        Service storage service = $.services[serviceNonce];
         Execution storage execution = service.executions[executionNonce];
 
         if (execution.state != ExecutionState.REQUESTED)
             revert InvalidExecutionState();
 
         string memory visibilityId = service.visibilityId;
-        (address creator, , ) = visibilityCredits.getVisibility(visibilityId);
+        (address creator, , ) = $.visibilityCredits.getVisibility(visibilityId);
         if (creator != msg.sender) revert UnauthorizedExecutionAction();
 
         execution.state = ExecutionState.ACCEPTED;
@@ -229,7 +202,9 @@ contract VisibilityServices is AccessControlDefaultAdminRules {
         uint256 executionNonce,
         string calldata cancelData
     ) external {
-        Service storage service = services[serviceNonce];
+        VisibilityServicesStorage storage $ = _getVisibilityServicesStorage();
+
+        Service storage service = $.services[serviceNonce];
         Execution storage execution = service.executions[executionNonce];
 
         if (execution.state != ExecutionState.REQUESTED)
@@ -238,14 +213,14 @@ contract VisibilityServices is AccessControlDefaultAdminRules {
         address requester = execution.requester;
 
         string memory visibilityId = service.visibilityId;
-        (address creator, , ) = visibilityCredits.getVisibility(visibilityId);
+        (address creator, , ) = $.visibilityCredits.getVisibility(visibilityId);
         if (!(requester == msg.sender || creator == msg.sender))
             revert UnauthorizedExecutionAction();
 
         execution.state = ExecutionState.REFUNDED;
         execution.lastUpdateTimestamp = block.timestamp;
 
-        visibilityCredits.transferCredits(
+        $.visibilityCredits.transferCredits(
             visibilityId,
             address(this),
             requester,
@@ -270,7 +245,9 @@ contract VisibilityServices is AccessControlDefaultAdminRules {
         uint256 serviceNonce,
         uint256 executionNonce
     ) external {
-        Service storage service = services[serviceNonce];
+        VisibilityServicesStorage storage $ = _getVisibilityServicesStorage();
+
+        Service storage service = $.services[serviceNonce];
         Execution storage execution = service.executions[executionNonce];
 
         if (execution.state != ExecutionState.ACCEPTED)
@@ -282,14 +259,14 @@ contract VisibilityServices is AccessControlDefaultAdminRules {
                     block.timestamp))
         ) revert UnauthorizedExecutionAction();
 
-        (address creator, , ) = visibilityCredits.getVisibility(
+        (address creator, , ) = $.visibilityCredits.getVisibility(
             service.visibilityId
         );
 
         execution.state = ExecutionState.VALIDATED;
         execution.lastUpdateTimestamp = block.timestamp;
 
-        visibilityCredits.transferCredits(
+        $.visibilityCredits.transferCredits(
             service.visibilityId,
             address(this),
             creator,
@@ -311,7 +288,9 @@ contract VisibilityServices is AccessControlDefaultAdminRules {
         uint256 executionNonce,
         string calldata disputeData
     ) external {
-        Service storage service = services[serviceNonce];
+        VisibilityServicesStorage storage $ = _getVisibilityServicesStorage();
+
+        Service storage service = $.services[serviceNonce];
         Execution storage execution = service.executions[executionNonce];
 
         if (execution.state != ExecutionState.ACCEPTED)
@@ -343,7 +322,9 @@ contract VisibilityServices is AccessControlDefaultAdminRules {
         bool refund,
         string calldata resolveData
     ) external onlyRole(DISPUTE_RESOLVER_ROLE) {
-        Service storage service = services[serviceNonce];
+        VisibilityServicesStorage storage $ = _getVisibilityServicesStorage();
+
+        Service storage service = $.services[serviceNonce];
         Execution storage execution = service.executions[executionNonce];
 
         if (execution.state != ExecutionState.DISPUTED)
@@ -351,7 +332,7 @@ contract VisibilityServices is AccessControlDefaultAdminRules {
 
         if (refund) {
             execution.state = ExecutionState.REFUNDED;
-            visibilityCredits.transferCredits(
+            $.visibilityCredits.transferCredits(
                 service.visibilityId,
                 address(this),
                 execution.requester,
@@ -359,10 +340,10 @@ contract VisibilityServices is AccessControlDefaultAdminRules {
             );
         } else {
             execution.state = ExecutionState.VALIDATED;
-            (address creator, , ) = visibilityCredits.getVisibility(
+            (address creator, , ) = $.visibilityCredits.getVisibility(
                 service.visibilityId
             );
-            visibilityCredits.transferCredits(
+            $.visibilityCredits.transferCredits(
                 service.visibilityId,
                 address(this),
                 creator,
@@ -380,16 +361,30 @@ contract VisibilityServices is AccessControlDefaultAdminRules {
         );
     }
 
-    /**
-     * @notice Retrieves the details of a specific service execution.
-     *
-     * @param serviceNonce The ID of the service.
-     * @param executionNonce The ID of the execution.
-     *
-     * @return state The current state of the execution.
-     * @return requester The address that requested the execution.
-     * @return lastUpdateTimestamp The timestamp of the last update.
-     */
+    function getService(
+        uint256 serviceNonce
+    )
+        external
+        view
+        returns (
+            bool enabled,
+            string memory serviceType,
+            string memory visibilityId,
+            uint256 creditsCostAmount,
+            uint256 executionsNonce
+        )
+    {
+        VisibilityServicesStorage storage $ = _getVisibilityServicesStorage();
+        Service storage service = $.services[serviceNonce];
+        return (
+            service.enabled,
+            service.serviceType,
+            service.visibilityId,
+            service.creditsCostAmount,
+            service.executionsNonce
+        );
+    }
+
     function getServiceExecution(
         uint256 serviceNonce,
         uint256 executionNonce
@@ -402,7 +397,8 @@ contract VisibilityServices is AccessControlDefaultAdminRules {
             uint256 lastUpdateTimestamp
         )
     {
-        Execution storage execution = services[serviceNonce].executions[
+        VisibilityServicesStorage storage $ = _getVisibilityServicesStorage();
+        Execution storage execution = $.services[serviceNonce].executions[
             executionNonce
         ];
         return (
@@ -410,5 +406,10 @@ contract VisibilityServices is AccessControlDefaultAdminRules {
             execution.requester,
             execution.lastUpdateTimestamp
         );
+    }
+
+    function getVisibilityCreditsContract() external view returns (address) {
+        VisibilityServicesStorage storage $ = _getVisibilityServicesStorage();
+        return address($.visibilityCredits);
     }
 }

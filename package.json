@@ -2,19 +2,22 @@
   "name": "noodles-contracts",
   "scripts": {
     "compile": "npx hardhat clean && npx hardhat compile",
-    "deploy": "npx hardhat deploy-zksync --script deploy.ts --network",
-    "test": "npx hardhat test",
-    "test-local": "npx hardhat test --network localhost"
+    "deploy": "npm run compile && npx hardhat deploy-zksync --script deploy.ts --network",
+    "test": "rm -f .upgradable/ZKsync-era-test-node.json && npm run compile && npx hardhat test",
+    "test-fork-localhost": "npm run compile && npx hardhat test --network localhost"
   },
   "devDependencies": {
     "@matterlabs/hardhat-zksync": "^1.3.0",
+    "@matterlabs/hardhat-zksync-upgradable": "^1.8.2",
     "@nomicfoundation/hardhat-chai-matchers": "^2.0.8",
     "@nomicfoundation/hardhat-toolbox": "^5.0.0",
-    "@openzeppelin/contracts": "^5.1.0",
     "chai": "^4.3.6",
     "dotenv": "^16.4.5",
     "ethers": "^6.13.4",
     "hardhat": "^2.22.16",
     "zksync-ethers": "^6.15.1"
+  },
+  "dependencies": {
+    "@openzeppelin/contracts-upgradeable": "^5.1.0"
   }
 }

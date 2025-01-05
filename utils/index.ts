@@ -53,7 +53,9 @@ export const verifyEnoughBalance = async (wallet: Wallet, amount: bigint) => {
   if (balance < amount)
     throw `⛔️ Wallet balance is too low! Required ${ethers.formatEther(
       amount
-    )} ETH, but current ${wallet.address} balance is ${ethers.formatEther(balance)} ETH`
+    )} ETH, but current ${wallet.address} balance is ${ethers.formatEther(
+      balance
+    )} ETH`
 }
 
 /**
@@ -61,9 +63,9 @@ export const verifyEnoughBalance = async (wallet: Wallet, amount: bigint) => {
  */
 export const verifyContract = async (data: {
   address: string
-  contract: string
-  constructorArguments: string
-  bytecode: string
+  contract?: string
+  constructorArguments?: string
+  bytecode?: string
 }) => {
   const verificationRequestId: number = await hre.run('verify:verify', {
     ...data,
@@ -144,6 +146,62 @@ export const deployContract = async (
       contract: fullContractSource,
       constructorArguments: constructorArgs,
       bytecode: artifact.bytecode
+    })
+  }
+
+  return contract
+}
+
+export const deployProxyContract = async (
+  contractArtifactName: string,
+  constructorArguments?: any[],
+  options?: DeployContractOptions
+): Promise<ethers.Contract> => {
+  const log = (message: string) => {
+    if (!options?.silent) console.log(message)
+  }
+
+  log(`\nStarting deployment process of "${contractArtifactName}"...`)
+
+  const wallet = options?.wallet ?? getWallet()
+  const deployer = new Deployer(hre, wallet)
+
+  const artifact = await deployer
+    .loadArtifact(contractArtifactName)
+    .catch((error) => {
+      if (
+        error?.message?.includes(
+          `Artifact for contract "${contractArtifactName}" not found.`
+        )
+      ) {
+        console.error(error.message)
+        throw `⛔️ Please make sure you have compiled your contracts or specified the correct contract name!`
+      } else {
+        throw error
+      }
+    })
+
+  const contract = await hre.zkUpgrades.deployProxy(
+    deployer.zkWallet,
+    artifact,
+    constructorArguments,
+    {
+      initializer: 'initialize'
+    },
+    options?.silent
+  )
+
+  await contract.waitForDeployment()
+
+  const address = await contract.getAddress()
+
+  // Display contract deployment info
+  log(`\n"${artifact.contractName}" was successfully deployed: ${address}`)
+
+  if (!options?.noVerify && hre.network.config.verifyURL) {
+    log(`Requesting contract verification...`)
+    await verifyContract({
+      address
     })
   }
 
