@@ -21,7 +21,7 @@ const config: HardhatUserConfig = {
 
   networks: {
     abstractTestnet: {
-      // chainId: 11124,
+      chainId: 11124,
       url: 'https://api.testnet.abs.xyz',
       ethNetwork: 'sepolia',
       zksync: true,

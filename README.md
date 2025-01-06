@@ -33,6 +33,12 @@
    npm run compile
    ```
 
+3. Run tests:
+
+   ```bash
+   npm run test
+   ```
+
 ### Deploy
 
 #### Configuration
@@ -49,13 +55,9 @@ Ensure you setup your `.env` file correctly. You can initialize it from the prov
    npm run deploy abstractTestnet
    ```
 
-### Testing
+## Tests
 
-```bash
-npm run test
-```
-
-### Local Fork Testing
+### Fork Abstract Testnet
 
 1. Install Rust (if not already installed):
 

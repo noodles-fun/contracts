@@ -7,7 +7,9 @@ era_test_node.log
 
 # Hardhat files
 /artifacts
-/artifacts-zk
+/artifacts-zk/@openzeppelin
+/artifacts-zk/build-info
+/artifacts-zk/**/*.dbg.json
 /cache
 /cache-zk
 /deployments-zk/zkSyncEraTestNode

@@ -1,7 +1,9 @@
-import { Wallet } from 'zksync-ethers'
-import { HardhatRuntimeEnvironment } from 'hardhat/types'
 import { formatEther } from 'ethers'
-import { deployProxyContract, getProvider, verifyContract } from '../utils'
+import fs from 'fs'
+import { HardhatRuntimeEnvironment } from 'hardhat/types'
+import { Deployer } from '@matterlabs/hardhat-zksync'
+import { Wallet } from 'zksync-ethers'
+import { deployProxyContract, getProvider } from '../utils'
 
 export default async function (hre: HardhatRuntimeEnvironment) {
   if (!process.env.DEPLOYER_PRIVATE_KEY) {
@@ -25,9 +27,10 @@ export default async function (hre: HardhatRuntimeEnvironment) {
 
   const adminDelay = 60 * 60 * 24 * 3 // 3 days
 
-  const wallet = new Wallet(process.env.DEPLOYER_PRIVATE_KEY)
   const provider = getProvider()
 
+  const wallet = new Wallet(process.env.DEPLOYER_PRIVATE_KEY)
+  const deployer = new Deployer(hre, wallet)
   const deployerAddr = wallet.address
   const deployerBalance = await provider.getBalance(deployerAddr)
 
@@ -98,12 +101,31 @@ export default async function (hre: HardhatRuntimeEnvironment) {
   console.log('Changing default admin delay...')
   tx = await creditsContract.changeDefaultAdminDelay(adminDelay)
   await tx.wait()
-  tx = await servicesContract.changeDefaultAdminDelay(adminDelay)
-  await tx.wait()
-  console.log('Default admin delay changed !')
 
-  console.log('🥳 Done', {
+  console.log('Changing proxy admin owner...')
+  await hre.zkUpgrades.admin.transferProxyAdminOwnership(
     creditsContractAddr,
-    servicesContractAddr
-  })
+    process.env.ADMIN_ADDRESS,
+    deployer.zkWallet
+  )
+  await hre.zkUpgrades.admin.transferProxyAdminOwnership(
+    servicesContractAddr,
+    process.env.ADMIN_ADDRESS,
+    deployer.zkWallet
+  )
+
+  const deploymentsJSON = JSON.parse(
+    fs.readFileSync('deployments.json', 'utf8')
+  )
+  deploymentsJSON[hre.network.config.chainId as number] = {
+    VisibilityCredits: {
+      proxy: creditsContractAddr
+    },
+
+    VisibilityServices: {
+      proxy: servicesContractAddr
+    }
+  }
+  fs.writeFileSync('deployments.json', JSON.stringify(deploymentsJSON, null, 2))
+  console.log('🥳 Done')
 }

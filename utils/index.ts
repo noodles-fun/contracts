@@ -2,7 +2,7 @@ import { Provider, Wallet } from 'zksync-ethers'
 import * as hre from 'hardhat'
 import { Deployer } from '@matterlabs/hardhat-zksync-deploy'
 import dotenv from 'dotenv'
-import { ethers } from 'ethers'
+import { ethers, id } from 'ethers'
 
 import '@matterlabs/hardhat-zksync-node/dist/type-extensions'
 import '@matterlabs/hardhat-zksync-verify/dist/src/type-extensions'
@@ -186,6 +186,12 @@ export const deployProxyContract = async (
     artifact,
     constructorArguments,
     {
+      /* 
+      deploymentTypeImpl: 'create2',
+      deploymentTypeProxy: 'create2',
+      saltImpl: id('1234'),
+      saltProxy: id('1234'),
+    */
       initializer: 'initialize'
     },
     options?.silent
