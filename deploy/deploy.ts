@@ -129,3 +129,26 @@ export default async function (hre: HardhatRuntimeEnvironment) {
   fs.writeFileSync('deployments.json', JSON.stringify(deploymentsJSON, null, 2))
   console.log('🥳 Done')
 }
+
+/*
+
+Deploy to abstractTestnet
+    Deployer: 0x1B30bFa535f8c3eB6Ca66c63C6c0BE65c70A26BE (balance = 0.037031502651271449 ETH)
+    Admin: 0x8811c5f40F1bF008c91e084BF4159b8cDEd2898B
+    Creators linker: 0x8811c5f40F1bF008c91e084BF4159b8cDEd2898B
+    Dispute resolver: 0x8811c5f40F1bF008c91e084BF4159b8cDEd2898B
+    Partners linker: 0x8811c5f40F1bF008c91e084BF4159b8cDEd2898B
+    Treasury: 0xda6bbE41370cA0c2b132ebe5FBeD4c0782E0eCB5
+zksolc v1.5.8 and zkvm-solc v0.8.26-1.0.1
+
+VisibilityCredits
+Implementation: 0x54A04656c1e36b0BD73Ab3A5EDFD015Cf65517A9
+Proxy admin: 0x7E764B1211888076390f236b91dFdBC39917a9e8
+Transparent proxy: 0xE7bdC5fa6B9F20c43a0fe5aff23E30cCb717071C
+
+VisibilityServices
+Implementation: 0x16fFcdA45AD24f34e2Ac7d3D30Aa5Af8BE1820d9
+Proxy admin: 0x035bF4C95d170170576C41D06587a0a78b004e86
+Transparent proxy: 0x02d3e594dA2963c5BA2B9E64220aCF55A669b794
+
+*/

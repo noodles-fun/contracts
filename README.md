@@ -12,8 +12,8 @@
 
 |Contract|Description|Mainnet address|Testnet address|
 |--------|--------------------|---------------|---------------|
-| **VisibilityCredits**  | Implements a bonding curve where token price = A × supply² + B × supply + basePrice. Price grows as supply grows | Coming Soon      | [0x1B644f436A3F8eA250b95577A8cDFD020615c187](https://explorer.testnet.abs.xyz/address/0x1B644f436A3F8eA250b95577A8cDFD020615c187)        |
-| **VisibilityServices** | Lets creators accept tokens for off-chain promotion services.                                                   | Coming Soon      | [0x77aEb1C5c5e2d29b0d9278748C7E70178d1Ec1f0](https://explorer.testnet.abs.xyz/address/0x77aEb1C5c5e2d29b0d9278748C7E70178d1Ec1f0#contract)        |
+| **VisibilityCredits**  | Implements a bonding curve where token price = A × supply² + B × supply + basePrice. Price grows as supply grows | Coming Soon      | [0xE7bdC5fa6B9F20c43a0fe5aff23E30cCb717071C](https://explorer.testnet.abs.xyz/address/0xE7bdC5fa6B9F20c43a0fe5aff23E30cCb717071C)        |
+| **VisibilityServices** | Lets creators accept tokens for off-chain promotion services.                                                   | Coming Soon      | [0x02d3e594dA2963c5BA2B9E64220aCF55A669b794](https://explorer.testnet.abs.xyz/address/0x02d3e594dA2963c5BA2B9E64220aCF55A669b794)        |
 
 ---
 

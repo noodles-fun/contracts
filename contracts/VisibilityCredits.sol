@@ -27,7 +27,7 @@ contract VisibilityCredits is
      */
     uint64 public constant A = 15_000_000_000; // 0.000000015 ether;
     uint64 public constant B = 25_000_000_000_000; // 0.000025 ether;
-    uint64 public constant BASE_PRICE = 100_000_000_000_000; // 0.0001 ether;
+    uint64 public constant BASE_PRICE = 10_000_000_000_000_000; // 0.01 ether;
 
     /// @dev to avoid overflow on bonding curve computations
     uint64 public constant MAX_TOTAL_SUPPLY = type(uint64).max; // 2^64 - 1 = 18_446_744_073_709_551_615
