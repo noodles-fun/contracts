@@ -75,7 +75,11 @@ describe('VisibilityServices', function () {
     // Grant creator role to `creator`
     tx = await visibilityCredits
       .connect(creatorsLinker)
-      .setCreatorVisibility(visibilityId1, await creator.getAddress())
+      .setCreatorVisibility(
+        visibilityId1,
+        await creator.getAddress(),
+        'LucaNetz'
+      )
     await tx.wait()
 
     tx = await visibilityServices

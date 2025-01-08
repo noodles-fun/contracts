@@ -58,7 +58,11 @@ describe('VisibilityCredits', function () {
 
     tx = await creditsContract
       .connect(creatorsLinker)
-      .setCreatorVisibility(visibilityId1, await creator1.getAddress())
+      .setCreatorVisibility(
+        visibilityId1,
+        await creator1.getAddress(),
+        'Lucanetz'
+      )
 
     await tx.wait()
   }

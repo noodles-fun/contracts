@@ -35,7 +35,11 @@ interface IVisibilityCredits {
     }
 
     event CreatorFeeClaimed(address indexed creator, uint256 amount);
-    event CreatorVisibilitySet(string visibilityId, address creator);
+    event CreatorVisibilitySet(
+        string visibilityId,
+        address creator,
+        string metadata
+    );
     event CreditsTrade(CreditsTradeEvent tradeEvent);
     event CreditsTransfer(
         string visibilityId,
@@ -67,7 +71,8 @@ interface IVisibilityCredits {
 
     function setCreatorVisibility(
         string calldata visibilityId,
-        address creator
+        address creator,
+        string calldata metadata
     ) external;
 
     function setReferrerPartner(address referrer, address partner) external;

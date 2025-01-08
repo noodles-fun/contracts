@@ -2,218 +2,20 @@
   "manifestVersion": "3.2",
   "proxies": [
     {
-      "address": "0xE7bdC5fa6B9F20c43a0fe5aff23E30cCb717071C",
-      "txHash": "0x9deb757ea15d938d1c2a9ca08efcf00f1cd7f52819b47fda17c85854d5813183",
+      "address": "0x00fbeC67F05fc30898670BB7510863216E4d2C95",
+      "txHash": "0x10d762713686416a9daa1ba81f21a200572c70842aa2c4efa7b1d38e20886cfc",
       "kind": "transparent"
     },
     {
-      "address": "0x02d3e594dA2963c5BA2B9E64220aCF55A669b794",
-      "txHash": "0xc374b897f3064860c3c085c747204d3df867d2cd3f5a489ba1eb4275c5d2def3",
+      "address": "0xe9f915bE546BE513c880E39E515D52002ced7c7b",
+      "txHash": "0x0aed94afd4fa478e8beed37374343b3e4d75d5931753a4689a41a700a2f1cfbf",
       "kind": "transparent"
     }
   ],
   "impls": {
-    "72cd296451f7ebc8cd44119ff6b91a2881c8f6af48e47cc1ce00a2434463b05e": {
-      "address": "0x16fFcdA45AD24f34e2Ac7d3D30Aa5Af8BE1820d9",
-      "txHash": "0x466a6eb094a0d725748676a4e01a71d6bbba026ce7032d1159bb9dbb87da1ab2",
-      "layout": {
-        "solcVersion": "0.8.26",
-        "storage": [],
-        "types": {
-          "t_contract(IVisibilityCredits)8251": {
-            "label": "contract IVisibilityCredits"
-          },
-          "t_uint256": {
-            "label": "uint256"
-          },
-          "t_mapping(t_uint256,t_struct(Service)8284_storage)": {
-            "label": "mapping(uint256 => struct IVisibilityServices.Service)"
-          },
-          "t_struct(Service)8284_storage": {
-            "label": "struct IVisibilityServices.Service",
-            "members": [
-              {
-                "label": "enabled",
-                "type": "t_bool"
-              },
-              {
-                "label": "serviceType",
-                "type": "t_string_storage"
-              },
-              {
-                "label": "visibilityId",
-                "type": "t_string_storage"
-              },
-              {
-                "label": "creditsCostAmount",
-                "type": "t_uint256"
-              },
-              {
-                "label": "executionsNonce",
-                "type": "t_uint256"
-              },
-              {
-                "label": "executions",
-                "type": "t_mapping(t_uint256,t_struct(Execution)8268_storage)"
-              }
-            ]
-          },
-          "t_bool": {
-            "label": "bool"
-          },
-          "t_string_storage": {
-            "label": "string"
-          },
-          "t_mapping(t_uint256,t_struct(Execution)8268_storage)": {
-            "label": "mapping(uint256 => struct IVisibilityServices.Execution)"
-          },
-          "t_struct(Execution)8268_storage": {
-            "label": "struct IVisibilityServices.Execution",
-            "members": [
-              {
-                "label": "state",
-                "type": "t_enum(ExecutionState)8260"
-              },
-              {
-                "label": "requester",
-                "type": "t_address"
-              },
-              {
-                "label": "lastUpdateTimestamp",
-                "type": "t_uint256"
-              }
-            ]
-          },
-          "t_enum(ExecutionState)8260": {
-            "label": "enum IVisibilityServices.ExecutionState",
-            "members": [
-              "UNINITIALIZED",
-              "REQUESTED",
-              "ACCEPTED",
-              "DISPUTED",
-              "REFUNDED",
-              "VALIDATED"
-            ]
-          },
-          "t_address": {
-            "label": "address"
-          },
-          "t_uint48": {
-            "label": "uint48"
-          },
-          "t_mapping(t_bytes32,t_struct(RoleData)25_storage)": {
-            "label": "mapping(bytes32 => struct AccessControlUpgradeable.RoleData)"
-          },
-          "t_bytes32": {
-            "label": "bytes32"
-          },
-          "t_struct(RoleData)25_storage": {
-            "label": "struct AccessControlUpgradeable.RoleData",
-            "members": [
-              {
-                "label": "hasRole",
-                "type": "t_mapping(t_address,t_bool)"
-              },
-              {
-                "label": "adminRole",
-                "type": "t_bytes32"
-              }
-            ]
-          },
-          "t_mapping(t_address,t_bool)": {
-            "label": "mapping(address => bool)"
-          },
-          "t_uint64": {
-            "label": "uint64"
-          }
-        },
-        "namespaces": {
-          "erc7201:noodles.VisibilityServices": [
-            {
-              "contract": "VisibilityServices",
-              "label": "visibilityCredits",
-              "type": "t_contract(IVisibilityCredits)8251",
-              "src": "contracts/VisibilityServices.sol:23"
-            },
-            {
-              "contract": "VisibilityServices",
-              "label": "servicesNonce",
-              "type": "t_uint256",
-              "src": "contracts/VisibilityServices.sol:24"
-            },
-            {
-              "contract": "VisibilityServices",
-              "label": "services",
-              "type": "t_mapping(t_uint256,t_struct(Service)8284_storage)",
-              "src": "contracts/VisibilityServices.sol:25"
-            }
-          ],
-          "erc7201:openzeppelin.storage.AccessControlDefaultAdminRules": [
-            {
-              "contract": "AccessControlDefaultAdminRulesUpgradeable",
-              "label": "_pendingDefaultAdmin",
-              "type": "t_address",
-              "src": "@openzeppelin/contracts-upgradeable/access/extensions/AccessControlDefaultAdminRulesUpgradeable.sol:45"
-            },
-            {
-              "contract": "AccessControlDefaultAdminRulesUpgradeable",
-              "label": "_pendingDefaultAdminSchedule",
-              "type": "t_uint48",
-              "src": "@openzeppelin/contracts-upgradeable/access/extensions/AccessControlDefaultAdminRulesUpgradeable.sol:46"
-            },
-            {
-              "contract": "AccessControlDefaultAdminRulesUpgradeable",
-              "label": "_currentDelay",
-              "type": "t_uint48",
-              "src": "@openzeppelin/contracts-upgradeable/access/extensions/AccessControlDefaultAdminRulesUpgradeable.sol:48"
-            },
-            {
-              "contract": "AccessControlDefaultAdminRulesUpgradeable",
-              "label": "_currentDefaultAdmin",
-              "type": "t_address",
-              "src": "@openzeppelin/contracts-upgradeable/access/extensions/AccessControlDefaultAdminRulesUpgradeable.sol:49"
-            },
-            {
-              "contract": "AccessControlDefaultAdminRulesUpgradeable",
-              "label": "_pendingDelay",
-              "type": "t_uint48",
-              "src": "@openzeppelin/contracts-upgradeable/access/extensions/AccessControlDefaultAdminRulesUpgradeable.sol:52"
-            },
-            {
-              "contract": "AccessControlDefaultAdminRulesUpgradeable",
-              "label": "_pendingDelaySchedule",
-              "type": "t_uint48",
-              "src": "@openzeppelin/contracts-upgradeable/access/extensions/AccessControlDefaultAdminRulesUpgradeable.sol:53"
-            }
-          ],
-          "erc7201:openzeppelin.storage.AccessControl": [
-            {
-              "contract": "AccessControlUpgradeable",
-              "label": "_roles",
-              "type": "t_mapping(t_bytes32,t_struct(RoleData)25_storage)",
-              "src": "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol:61"
-            }
-          ],
-          "erc7201:openzeppelin.storage.Initializable": [
-            {
-              "contract": "Initializable",
-              "label": "_initialized",
-              "type": "t_uint64",
-              "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:69"
-            },
-            {
-              "contract": "Initializable",
-              "label": "_initializing",
-              "type": "t_bool",
-              "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:73"
-            }
-          ]
-        }
-      }
-    },
-    "7bbb4a12136e44916bb7e8018f517c1462ce59fb16c9cb44c5fdbb4ee3d46794": {
-      "address": "0x54A04656c1e36b0BD73Ab3A5EDFD015Cf65517A9",
-      "txHash": "0xd2b2ea4f2a086bdf8018dd2d75f3a3750e9e41bbd157f8ac0d7557545d336af4",
+    "16f2f6c019b4fb9defb181edf1d30e654bf4bf9eb687bf50c38ef7c737185de3": {
+      "address": "0x153CD6a96a97e123C78162b9c9b4d26cf05A8136",
+      "txHash": "0xc5016b25ba26b479cb67f131948ce10fbb7c490eb6a44031a6d81fa4644967cd",
       "layout": {
         "solcVersion": "0.8.26",
         "storage": [],
@@ -227,13 +29,13 @@
           "t_address": {
             "label": "address"
           },
-          "t_mapping(t_bytes32,t_struct(Visibility)8076_storage)": {
+          "t_mapping(t_bytes32,t_struct(Visibility)8079_storage)": {
             "label": "mapping(bytes32 => struct IVisibilityCredits.Visibility)"
           },
           "t_bytes32": {
             "label": "bytes32"
           },
-          "t_struct(Visibility)8076_storage": {
+          "t_struct(Visibility)8079_storage": {
             "label": "struct IVisibilityCredits.Visibility",
             "members": [
               {
@@ -312,7 +114,7 @@
             {
               "contract": "VisibilityCredits",
               "label": "visibilityCredits",
-              "type": "t_mapping(t_bytes32,t_struct(Visibility)8076_storage)",
+              "type": "t_mapping(t_bytes32,t_struct(Visibility)8079_storage)",
               "src": "contracts/VisibilityCredits.sol:75"
             }
           ],
@@ -322,6 +124,204 @@
               "label": "_status",
               "type": "t_uint256",
               "src": "@openzeppelin/contracts-upgradeable/utils/ReentrancyGuardUpgradeable.sol:43"
+            }
+          ],
+          "erc7201:openzeppelin.storage.AccessControlDefaultAdminRules": [
+            {
+              "contract": "AccessControlDefaultAdminRulesUpgradeable",
+              "label": "_pendingDefaultAdmin",
+              "type": "t_address",
+              "src": "@openzeppelin/contracts-upgradeable/access/extensions/AccessControlDefaultAdminRulesUpgradeable.sol:45"
+            },
+            {
+              "contract": "AccessControlDefaultAdminRulesUpgradeable",
+              "label": "_pendingDefaultAdminSchedule",
+              "type": "t_uint48",
+              "src": "@openzeppelin/contracts-upgradeable/access/extensions/AccessControlDefaultAdminRulesUpgradeable.sol:46"
+            },
+            {
+              "contract": "AccessControlDefaultAdminRulesUpgradeable",
+              "label": "_currentDelay",
+              "type": "t_uint48",
+              "src": "@openzeppelin/contracts-upgradeable/access/extensions/AccessControlDefaultAdminRulesUpgradeable.sol:48"
+            },
+            {
+              "contract": "AccessControlDefaultAdminRulesUpgradeable",
+              "label": "_currentDefaultAdmin",
+              "type": "t_address",
+              "src": "@openzeppelin/contracts-upgradeable/access/extensions/AccessControlDefaultAdminRulesUpgradeable.sol:49"
+            },
+            {
+              "contract": "AccessControlDefaultAdminRulesUpgradeable",
+              "label": "_pendingDelay",
+              "type": "t_uint48",
+              "src": "@openzeppelin/contracts-upgradeable/access/extensions/AccessControlDefaultAdminRulesUpgradeable.sol:52"
+            },
+            {
+              "contract": "AccessControlDefaultAdminRulesUpgradeable",
+              "label": "_pendingDelaySchedule",
+              "type": "t_uint48",
+              "src": "@openzeppelin/contracts-upgradeable/access/extensions/AccessControlDefaultAdminRulesUpgradeable.sol:53"
+            }
+          ],
+          "erc7201:openzeppelin.storage.AccessControl": [
+            {
+              "contract": "AccessControlUpgradeable",
+              "label": "_roles",
+              "type": "t_mapping(t_bytes32,t_struct(RoleData)25_storage)",
+              "src": "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol:61"
+            }
+          ],
+          "erc7201:openzeppelin.storage.Initializable": [
+            {
+              "contract": "Initializable",
+              "label": "_initialized",
+              "type": "t_uint64",
+              "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:69"
+            },
+            {
+              "contract": "Initializable",
+              "label": "_initializing",
+              "type": "t_bool",
+              "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:73"
+            }
+          ]
+        }
+      }
+    },
+    "70c955ec675d02d367961f75efc1d5127593d487dedbe054b2be181582e9e982": {
+      "address": "0x6D445b43c1D7B71957a8c7B7de82422580a04e7f",
+      "txHash": "0x4c259ab926324e3f4939252ab807f1f59a33b08e59fb8abdb5805748b831116e",
+      "layout": {
+        "solcVersion": "0.8.26",
+        "storage": [],
+        "types": {
+          "t_contract(IVisibilityCredits)8258": {
+            "label": "contract IVisibilityCredits"
+          },
+          "t_uint256": {
+            "label": "uint256"
+          },
+          "t_mapping(t_uint256,t_struct(Service)8291_storage)": {
+            "label": "mapping(uint256 => struct IVisibilityServices.Service)"
+          },
+          "t_struct(Service)8291_storage": {
+            "label": "struct IVisibilityServices.Service",
+            "members": [
+              {
+                "label": "enabled",
+                "type": "t_bool"
+              },
+              {
+                "label": "serviceType",
+                "type": "t_string_storage"
+              },
+              {
+                "label": "visibilityId",
+                "type": "t_string_storage"
+              },
+              {
+                "label": "creditsCostAmount",
+                "type": "t_uint256"
+              },
+              {
+                "label": "executionsNonce",
+                "type": "t_uint256"
+              },
+              {
+                "label": "executions",
+                "type": "t_mapping(t_uint256,t_struct(Execution)8275_storage)"
+              }
+            ]
+          },
+          "t_bool": {
+            "label": "bool"
+          },
+          "t_string_storage": {
+            "label": "string"
+          },
+          "t_mapping(t_uint256,t_struct(Execution)8275_storage)": {
+            "label": "mapping(uint256 => struct IVisibilityServices.Execution)"
+          },
+          "t_struct(Execution)8275_storage": {
+            "label": "struct IVisibilityServices.Execution",
+            "members": [
+              {
+                "label": "state",
+                "type": "t_enum(ExecutionState)8267"
+              },
+              {
+                "label": "requester",
+                "type": "t_address"
+              },
+              {
+                "label": "lastUpdateTimestamp",
+                "type": "t_uint256"
+              }
+            ]
+          },
+          "t_enum(ExecutionState)8267": {
+            "label": "enum IVisibilityServices.ExecutionState",
+            "members": [
+              "UNINITIALIZED",
+              "REQUESTED",
+              "ACCEPTED",
+              "DISPUTED",
+              "REFUNDED",
+              "VALIDATED"
+            ]
+          },
+          "t_address": {
+            "label": "address"
+          },
+          "t_uint48": {
+            "label": "uint48"
+          },
+          "t_mapping(t_bytes32,t_struct(RoleData)25_storage)": {
+            "label": "mapping(bytes32 => struct AccessControlUpgradeable.RoleData)"
+          },
+          "t_bytes32": {
+            "label": "bytes32"
+          },
+          "t_struct(RoleData)25_storage": {
+            "label": "struct AccessControlUpgradeable.RoleData",
+            "members": [
+              {
+                "label": "hasRole",
+                "type": "t_mapping(t_address,t_bool)"
+              },
+              {
+                "label": "adminRole",
+                "type": "t_bytes32"
+              }
+            ]
+          },
+          "t_mapping(t_address,t_bool)": {
+            "label": "mapping(address => bool)"
+          },
+          "t_uint64": {
+            "label": "uint64"
+          }
+        },
+        "namespaces": {
+          "erc7201:noodles.VisibilityServices": [
+            {
+              "contract": "VisibilityServices",
+              "label": "visibilityCredits",
+              "type": "t_contract(IVisibilityCredits)8258",
+              "src": "contracts/VisibilityServices.sol:23"
+            },
+            {
+              "contract": "VisibilityServices",
+              "label": "servicesNonce",
+              "type": "t_uint256",
+              "src": "contracts/VisibilityServices.sol:24"
+            },
+            {
+              "contract": "VisibilityServices",
+              "label": "services",
+              "type": "t_mapping(t_uint256,t_struct(Service)8291_storage)",
+              "src": "contracts/VisibilityServices.sol:25"
             }
           ],
           "erc7201:openzeppelin.storage.AccessControlDefaultAdminRules": [

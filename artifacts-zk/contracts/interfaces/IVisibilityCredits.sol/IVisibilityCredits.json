@@ -61,6 +61,12 @@
           "internalType": "address",
           "name": "creator",
           "type": "address"
+        },
+        {
+          "indexed": false,
+          "internalType": "string",
+          "name": "metadata",
+          "type": "string"
         }
       ],
       "name": "CreatorVisibilitySet",
@@ -536,6 +542,11 @@
           "internalType": "address",
           "name": "creator",
           "type": "address"
+        },
+        {
+          "internalType": "string",
+          "name": "metadata",
+          "type": "string"
         }
       ],
       "name": "setCreatorVisibility",

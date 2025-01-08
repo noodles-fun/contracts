@@ -336,10 +336,12 @@ contract VisibilityCredits is
      * @dev Only callable by an account with the `CREATORS_LINKER_ROLE`.
      * @param visibilityId The ID representing the visibility credits.
      * @param creator The address of the creator, can be address(0).
+     * @param metadata Additional metadata for the creator.
      */
     function setCreatorVisibility(
         string calldata visibilityId,
-        address creator
+        address creator,
+        string calldata metadata
     ) external onlyRole(CREATORS_LINKER_ROLE) {
         VisibilityCreditsStorage storage $ = _getVisibilityCreditsStorage();
         Visibility storage visibility = $.visibilityCredits[
@@ -347,7 +349,7 @@ contract VisibilityCredits is
         ];
         visibility.creator = creator;
 
-        emit CreatorVisibilitySet(visibilityId, creator);
+        emit CreatorVisibilitySet(visibilityId, creator, metadata);
     }
 
     /**
