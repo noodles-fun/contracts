@@ -150,6 +150,26 @@ describe('VisibilityServices', function () {
       expect(enabled).to.equal(false)
     })
 
+    it('Should create and update from an existing service', async function () {
+      await loadFixture(deployFixture)
+
+      tx = await visibilityServices
+        .connect(creator)
+        .createAndUpdateFromService(0, 55)
+      await tx.wait()
+
+      const [enabledAfter] = await visibilityServices.getService(0)
+      expect(enabledAfter).to.equal(false)
+
+      const [enabled, serviceType, visibilityId, creditsCostAmount] =
+        await visibilityServices.getService(1)
+
+      expect(enabled).to.equal(true)
+      expect(serviceType).to.equal('x-post')
+      expect(visibilityId).to.equal(visibilityId1)
+      expect(creditsCostAmount).to.equal(55)
+    })
+
     it('Should revert if non-creator tries to create a service', async function () {
       await loadFixture(deployFixture)
 
@@ -165,6 +185,14 @@ describe('VisibilityServices', function () {
 
       await expect(
         visibilityServices.connect(user1).updateService(0, false)
+      ).to.be.revertedWithCustomError(visibilityServices, 'InvalidCreator')
+    })
+
+    it('Should revert if non-creator tries to create and update from a service', async function () {
+      await loadFixture(deployFixture)
+
+      await expect(
+        visibilityServices.connect(user1).createAndUpdateFromService(0, 55)
       ).to.be.revertedWithCustomError(visibilityServices, 'InvalidCreator')
     })
 

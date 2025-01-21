@@ -68,7 +68,7 @@ contract VisibilityServices is
     }
 
     /**
-     * @notice Creates a new service.
+     * @notice Creates a new service. Can only be called by the creator linked to the visibility ID.
      *
      * @param serviceType The type of the service.
      * @param visibilityId The visibility ID associated with the service.
@@ -98,6 +98,46 @@ contract VisibilityServices is
             visibilityId,
             creditsCostAmount
         );
+    }
+
+    /**
+     * @notice Creates a new service and updates an existing service. Can only be called by the creator linked to the visibility ID.
+     * The existing service is disabled. The new service is created with the same parameters as the existing service, except for the cost in credits.
+     *
+     * @param serviceNonce The ID of the existing service.
+     * @param creditsCostAmount The cost in credits for the new service.
+     */
+    function createAndUpdateFromService(
+        uint256 serviceNonce,
+        uint256 creditsCostAmount
+    ) external {
+        VisibilityServicesStorage storage $ = _getVisibilityServicesStorage();
+
+        Service storage service = $.services[serviceNonce];
+        string memory serviceType = service.serviceType;
+        string memory visibilityId = service.visibilityId;
+
+        (address creator, , ) = $.visibilityCredits.getVisibility(visibilityId);
+        if (creator != msg.sender) revert InvalidCreator();
+
+        uint256 nonce = $.servicesNonce;
+        $.services[nonce].enabled = true;
+        $.services[nonce].serviceType = serviceType;
+        $.services[nonce].visibilityId = visibilityId;
+        $.services[nonce].creditsCostAmount = creditsCostAmount;
+        $.services[nonce].executionsNonce = 0;
+
+        $.servicesNonce += 1;
+
+        emit ServiceCreated(
+            nonce,
+            serviceType,
+            visibilityId,
+            creditsCostAmount
+        );
+
+        service.enabled = false;
+        emit ServiceUpdated(serviceNonce, false);
     }
 
     /**

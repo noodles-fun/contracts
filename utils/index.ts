@@ -2,13 +2,43 @@ import { Provider, Wallet } from 'zksync-ethers'
 import * as hre from 'hardhat'
 import { Deployer } from '@matterlabs/hardhat-zksync-deploy'
 import dotenv from 'dotenv'
-import { ethers, id } from 'ethers'
+import { ethers, getAddress } from 'ethers'
 
 import '@matterlabs/hardhat-zksync-node/dist/type-extensions'
 import '@matterlabs/hardhat-zksync-verify/dist/src/type-extensions'
 
 // Load env file
 dotenv.config()
+
+// Define the EIP-1967 implementation slot
+const EIP1967_IMPLEMENTATION_SLOT =
+  '0x360894a13ba1a3210667c828492db98dca3e2076cc3735a920a3ca505d382bbc'
+
+// Function to get the implementation address from a proxy
+export const getImplementationAddress = async (
+  proxyAddress: string
+): Promise<string> => {
+  try {
+    const provider = getProvider()
+
+    // Fetch the storage value at the implementation slot
+    const storageValue = await provider.getStorage(
+      proxyAddress,
+      EIP1967_IMPLEMENTATION_SLOT
+    )
+
+    // The implementation address is the last 20 bytes of the storage value
+    const implAddress = getAddress(`0x${storageValue.slice(-40)}`)
+
+    return implAddress
+  } catch (error) {
+    console.error(
+      `Failed to fetch implementation address for proxy ${proxyAddress}:`,
+      error
+    )
+    throw error
+  }
+}
 
 export const getProvider = () => {
   const rpcUrl = hre.network.config.url

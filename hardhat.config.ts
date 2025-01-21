@@ -5,7 +5,7 @@ import '@nomicfoundation/hardhat-toolbox'
 import '@nomicfoundation/hardhat-chai-matchers'
 
 // Comment these lines if you have troubles with Solidity VSCode extension (uncomment then when you need to compile/run/test)
-import '@matterlabs/hardhat-zksync' // to uncomment if you have trouble with Solidity VSCode extension
+import '@matterlabs/hardhat-zksync'
 import '@matterlabs/hardhat-zksync-upgradable'
 
 dotenv.config()
