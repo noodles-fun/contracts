@@ -229,15 +229,22 @@ export const deployProxyContract = async (
 
   await contract.waitForDeployment()
 
-  const address = await contract.getAddress()
+  const proxyAddress = await contract.getAddress()
+  const implAddress = await getImplementationAddress(proxyAddress)
 
   // Display contract deployment info
-  log(`\n"${artifact.contractName}" was successfully deployed: ${address}`)
+  log(`\n"${artifact.contractName}" was successfully deployed !`)
+  log(` - Proxy address: ${proxyAddress}`)
+  log(` - Implementation address: ${implAddress}`)
 
   if (!options?.noVerify && hre.network.config.verifyURL) {
-    log(`Requesting contract verification...`)
+    log(`Requesting impl contract verification...`)
     await verifyContract({
-      address
+      address: implAddress
+    })
+    console.log(`Requesting proxy contract verification...`)
+    await verifyContract({
+      address: proxyAddress
     })
   }
 

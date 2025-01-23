@@ -925,6 +925,8 @@ describe('VisibilityCredits', function () {
       tx = await creditsContract.connect(user1).claimCreatorFee(visibilityId1)
       await tx.wait()
 
+      expect(tx).to.emit(creditsContract, 'CreatorFeeClaimed')
+
       const finalCreatorBalanceee = await creator1.getBalance()
 
       expect(finalCreatorBalanceee).to.be.gt(initialCreatorBalance)
@@ -1105,6 +1107,15 @@ describe('VisibilityCredits', function () {
         .connect(deployer)
         .claimCreatorFee(visibilityId1)
       await tx.wait()
+
+      expect(tx)
+        .to.emit(creditsContract, 'CreatorFeeClaimed')
+        .withArgs(
+          await creator1.getAddress(),
+          creatorFee1 + creatorFee2,
+          visibilityId1,
+          deployer.address
+        )
 
       const creator1BalanceAfter = await creator1.getBalance()
       const contractBalanceAfterClaim = await provider.getBalance(

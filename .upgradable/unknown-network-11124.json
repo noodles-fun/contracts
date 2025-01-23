@@ -13,9 +13,9 @@
     }
   ],
   "impls": {
-    "16f2f6c019b4fb9defb181edf1d30e654bf4bf9eb687bf50c38ef7c737185de3": {
-      "address": "0x153CD6a96a97e123C78162b9c9b4d26cf05A8136",
-      "txHash": "0xc5016b25ba26b479cb67f131948ce10fbb7c490eb6a44031a6d81fa4644967cd",
+    "3600f187e2e5b4f1179c33fb6a0b058c5cfaacb00f143cc54d0bdf7e27724427": {
+      "address": "0x3e67ce7f19Bfb8594b392B22837BB0E60Dfd9867",
+      "txHash": "0xf3697b97085e268ece3727c597d62ec0ff185168f84e6506549f32594db391b4",
       "layout": {
         "solcVersion": "0.8.26",
         "storage": [],
@@ -29,13 +29,13 @@
           "t_address": {
             "label": "address"
           },
-          "t_mapping(t_bytes32,t_struct(Visibility)8079_storage)": {
+          "t_mapping(t_bytes32,t_struct(Visibility)8206_storage)": {
             "label": "mapping(bytes32 => struct IVisibilityCredits.Visibility)"
           },
           "t_bytes32": {
             "label": "bytes32"
           },
-          "t_struct(Visibility)8079_storage": {
+          "t_struct(Visibility)8206_storage": {
             "label": "struct IVisibilityCredits.Visibility",
             "members": [
               {
@@ -114,7 +114,7 @@
             {
               "contract": "VisibilityCredits",
               "label": "visibilityCredits",
-              "type": "t_mapping(t_bytes32,t_struct(Visibility)8079_storage)",
+              "type": "t_mapping(t_bytes32,t_struct(Visibility)8206_storage)",
               "src": "contracts/VisibilityCredits.sol:75"
             }
           ],
@@ -189,23 +189,23 @@
         }
       }
     },
-    "70c955ec675d02d367961f75efc1d5127593d487dedbe054b2be181582e9e982": {
-      "address": "0x6D445b43c1D7B71957a8c7B7de82422580a04e7f",
-      "txHash": "0x4c259ab926324e3f4939252ab807f1f59a33b08e59fb8abdb5805748b831116e",
+    "4c0f5ac43aee96bbfd72eed950b0c2a728e2bd19213c3e10431c722057fb1b7e": {
+      "address": "0xa0EcAf19A31Af9E07b36c735b25928c97bb604Fa",
+      "txHash": "0xa4988e6ac380dbc16feced58d74b079460242189821725e7e9a90248b3b4a0fa",
       "layout": {
         "solcVersion": "0.8.26",
         "storage": [],
         "types": {
-          "t_contract(IVisibilityCredits)8258": {
+          "t_contract(IVisibilityCredits)8389": {
             "label": "contract IVisibilityCredits"
           },
           "t_uint256": {
             "label": "uint256"
           },
-          "t_mapping(t_uint256,t_struct(Service)8291_storage)": {
+          "t_mapping(t_uint256,t_struct(Service)8422_storage)": {
             "label": "mapping(uint256 => struct IVisibilityServices.Service)"
           },
-          "t_struct(Service)8291_storage": {
+          "t_struct(Service)8422_storage": {
             "label": "struct IVisibilityServices.Service",
             "members": [
               {
@@ -230,7 +230,7 @@
               },
               {
                 "label": "executions",
-                "type": "t_mapping(t_uint256,t_struct(Execution)8275_storage)"
+                "type": "t_mapping(t_uint256,t_struct(Execution)8406_storage)"
               }
             ]
           },
@@ -240,15 +240,15 @@
           "t_string_storage": {
             "label": "string"
           },
-          "t_mapping(t_uint256,t_struct(Execution)8275_storage)": {
+          "t_mapping(t_uint256,t_struct(Execution)8406_storage)": {
             "label": "mapping(uint256 => struct IVisibilityServices.Execution)"
           },
-          "t_struct(Execution)8275_storage": {
+          "t_struct(Execution)8406_storage": {
             "label": "struct IVisibilityServices.Execution",
             "members": [
               {
                 "label": "state",
-                "type": "t_enum(ExecutionState)8267"
+                "type": "t_enum(ExecutionState)8398"
               },
               {
                 "label": "requester",
@@ -260,7 +260,7 @@
               }
             ]
           },
-          "t_enum(ExecutionState)8267": {
+          "t_enum(ExecutionState)8398": {
             "label": "enum IVisibilityServices.ExecutionState",
             "members": [
               "UNINITIALIZED",
@@ -308,7 +308,7 @@
             {
               "contract": "VisibilityServices",
               "label": "visibilityCredits",
-              "type": "t_contract(IVisibilityCredits)8258",
+              "type": "t_contract(IVisibilityCredits)8389",
               "src": "contracts/VisibilityServices.sol:23"
             },
             {
@@ -320,205 +320,7 @@
             {
               "contract": "VisibilityServices",
               "label": "services",
-              "type": "t_mapping(t_uint256,t_struct(Service)8291_storage)",
-              "src": "contracts/VisibilityServices.sol:25"
-            }
-          ],
-          "erc7201:openzeppelin.storage.AccessControlDefaultAdminRules": [
-            {
-              "contract": "AccessControlDefaultAdminRulesUpgradeable",
-              "label": "_pendingDefaultAdmin",
-              "type": "t_address",
-              "src": "@openzeppelin/contracts-upgradeable/access/extensions/AccessControlDefaultAdminRulesUpgradeable.sol:45"
-            },
-            {
-              "contract": "AccessControlDefaultAdminRulesUpgradeable",
-              "label": "_pendingDefaultAdminSchedule",
-              "type": "t_uint48",
-              "src": "@openzeppelin/contracts-upgradeable/access/extensions/AccessControlDefaultAdminRulesUpgradeable.sol:46"
-            },
-            {
-              "contract": "AccessControlDefaultAdminRulesUpgradeable",
-              "label": "_currentDelay",
-              "type": "t_uint48",
-              "src": "@openzeppelin/contracts-upgradeable/access/extensions/AccessControlDefaultAdminRulesUpgradeable.sol:48"
-            },
-            {
-              "contract": "AccessControlDefaultAdminRulesUpgradeable",
-              "label": "_currentDefaultAdmin",
-              "type": "t_address",
-              "src": "@openzeppelin/contracts-upgradeable/access/extensions/AccessControlDefaultAdminRulesUpgradeable.sol:49"
-            },
-            {
-              "contract": "AccessControlDefaultAdminRulesUpgradeable",
-              "label": "_pendingDelay",
-              "type": "t_uint48",
-              "src": "@openzeppelin/contracts-upgradeable/access/extensions/AccessControlDefaultAdminRulesUpgradeable.sol:52"
-            },
-            {
-              "contract": "AccessControlDefaultAdminRulesUpgradeable",
-              "label": "_pendingDelaySchedule",
-              "type": "t_uint48",
-              "src": "@openzeppelin/contracts-upgradeable/access/extensions/AccessControlDefaultAdminRulesUpgradeable.sol:53"
-            }
-          ],
-          "erc7201:openzeppelin.storage.AccessControl": [
-            {
-              "contract": "AccessControlUpgradeable",
-              "label": "_roles",
-              "type": "t_mapping(t_bytes32,t_struct(RoleData)25_storage)",
-              "src": "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol:61"
-            }
-          ],
-          "erc7201:openzeppelin.storage.Initializable": [
-            {
-              "contract": "Initializable",
-              "label": "_initialized",
-              "type": "t_uint64",
-              "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:69"
-            },
-            {
-              "contract": "Initializable",
-              "label": "_initializing",
-              "type": "t_bool",
-              "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:73"
-            }
-          ]
-        }
-      }
-    },
-    "fa003a994278a7dcca188c591acefe7a6391cba4f234a4ed3438c05acfa9d290": {
-      "address": "0x504A3269419A9356D3bB0a123d48745B7BAe74C2",
-      "txHash": "0x82387caff7836d491b5b90118412125f6a05e9e7b235ff2de7a15ac4ec9be954",
-      "layout": {
-        "solcVersion": "0.8.26",
-        "storage": [],
-        "types": {
-          "t_contract(IVisibilityCredits)8381": {
-            "label": "contract IVisibilityCredits"
-          },
-          "t_uint256": {
-            "label": "uint256"
-          },
-          "t_mapping(t_uint256,t_struct(Service)8414_storage)": {
-            "label": "mapping(uint256 => struct IVisibilityServices.Service)"
-          },
-          "t_struct(Service)8414_storage": {
-            "label": "struct IVisibilityServices.Service",
-            "members": [
-              {
-                "label": "enabled",
-                "type": "t_bool"
-              },
-              {
-                "label": "serviceType",
-                "type": "t_string_storage"
-              },
-              {
-                "label": "visibilityId",
-                "type": "t_string_storage"
-              },
-              {
-                "label": "creditsCostAmount",
-                "type": "t_uint256"
-              },
-              {
-                "label": "executionsNonce",
-                "type": "t_uint256"
-              },
-              {
-                "label": "executions",
-                "type": "t_mapping(t_uint256,t_struct(Execution)8398_storage)"
-              }
-            ]
-          },
-          "t_bool": {
-            "label": "bool"
-          },
-          "t_string_storage": {
-            "label": "string"
-          },
-          "t_mapping(t_uint256,t_struct(Execution)8398_storage)": {
-            "label": "mapping(uint256 => struct IVisibilityServices.Execution)"
-          },
-          "t_struct(Execution)8398_storage": {
-            "label": "struct IVisibilityServices.Execution",
-            "members": [
-              {
-                "label": "state",
-                "type": "t_enum(ExecutionState)8390"
-              },
-              {
-                "label": "requester",
-                "type": "t_address"
-              },
-              {
-                "label": "lastUpdateTimestamp",
-                "type": "t_uint256"
-              }
-            ]
-          },
-          "t_enum(ExecutionState)8390": {
-            "label": "enum IVisibilityServices.ExecutionState",
-            "members": [
-              "UNINITIALIZED",
-              "REQUESTED",
-              "ACCEPTED",
-              "DISPUTED",
-              "REFUNDED",
-              "VALIDATED"
-            ]
-          },
-          "t_address": {
-            "label": "address"
-          },
-          "t_uint48": {
-            "label": "uint48"
-          },
-          "t_mapping(t_bytes32,t_struct(RoleData)25_storage)": {
-            "label": "mapping(bytes32 => struct AccessControlUpgradeable.RoleData)"
-          },
-          "t_bytes32": {
-            "label": "bytes32"
-          },
-          "t_struct(RoleData)25_storage": {
-            "label": "struct AccessControlUpgradeable.RoleData",
-            "members": [
-              {
-                "label": "hasRole",
-                "type": "t_mapping(t_address,t_bool)"
-              },
-              {
-                "label": "adminRole",
-                "type": "t_bytes32"
-              }
-            ]
-          },
-          "t_mapping(t_address,t_bool)": {
-            "label": "mapping(address => bool)"
-          },
-          "t_uint64": {
-            "label": "uint64"
-          }
-        },
-        "namespaces": {
-          "erc7201:noodles.VisibilityServices": [
-            {
-              "contract": "VisibilityServices",
-              "label": "visibilityCredits",
-              "type": "t_contract(IVisibilityCredits)8381",
-              "src": "contracts/VisibilityServices.sol:23"
-            },
-            {
-              "contract": "VisibilityServices",
-              "label": "servicesNonce",
-              "type": "t_uint256",
-              "src": "contracts/VisibilityServices.sol:24"
-            },
-            {
-              "contract": "VisibilityServices",
-              "label": "services",
-              "type": "t_mapping(t_uint256,t_struct(Service)8414_storage)",
+              "type": "t_mapping(t_uint256,t_struct(Service)8422_storage)",
               "src": "contracts/VisibilityServices.sol:25"
             }
           ],

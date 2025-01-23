@@ -1,11 +1,7 @@
 import { expect } from 'chai'
 import { ContractTransactionResponse, parseEther, ZeroAddress } from 'ethers'
 import { loadFixture } from '@nomicfoundation/hardhat-network-helpers'
-import {
-  ProxyAdmin__factory,
-  VisibilityCredits,
-  VisibilityServices
-} from '../typechain-types'
+import { VisibilityCredits, VisibilityServices } from '../typechain-types'
 import { deployProxyContract, getWallets, getProvider } from '../utils'
 import { Provider, Wallet } from 'zksync-ethers'
 

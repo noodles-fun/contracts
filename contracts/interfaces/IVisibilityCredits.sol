@@ -34,7 +34,12 @@ interface IVisibilityCredits {
         mapping(address => uint256) creditBalances;
     }
 
-    event CreatorFeeClaimed(address indexed creator, uint256 amount);
+    event CreatorFeeClaimed(
+        address indexed creator,
+        uint256 amount,
+        string visibilityId,
+        address from
+    );
     event CreatorVisibilitySet(
         string visibilityId,
         address creator,

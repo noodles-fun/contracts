@@ -317,7 +317,12 @@ contract VisibilityCredits is
 
         Address.sendValue(payable(creator), claimableFeeBalance);
 
-        emit CreatorFeeClaimed(creator, claimableFeeBalance);
+        emit CreatorFeeClaimed(
+            creator,
+            claimableFeeBalance,
+            visibilityId,
+            msg.sender
+        );
     }
 
     /**

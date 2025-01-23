@@ -11,8 +11,11 @@ import '@matterlabs/hardhat-zksync-upgradable'
 dotenv.config()
 
 const config: HardhatUserConfig = {
+  solidity: {
+    version: '0.8.26'
+  },
   zksolc: {
-    version: '1.5.8',
+    version: '1.5.10',
     settings: {
       // Note: This must be true to call NonceHolder & ContractDeployer system contracts
       enableEraVMExtensions: true
@@ -38,8 +41,25 @@ const config: HardhatUserConfig = {
       zksync: true
     }
   },
-  solidity: {
-    version: '0.8.26'
+  /*
+  etherscan: {
+    apiKey: {
+      abstractTestnet: process.env.EXPLORER_API_KEY as string
+    },
+    customChains: [
+      {
+        network: 'abstractTestnet',
+        chainId: 11124,
+        urls: {
+          apiURL: 'https://api-testnet.abscan.org/api',
+          browserURL: 'https://sepolia.abscan.org'
+        }
+      }
+    ]
+  },
+  */
+  sourcify: {
+    enabled: true
   }
 }
 

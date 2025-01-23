@@ -78,6 +78,11 @@ interface IVisibilityServices {
         uint256 creditsCostAmount
     ) external;
 
+    function createAndUpdateFromService(
+        uint256 serviceNonce,
+        uint256 creditsCostAmount
+    ) external;
+
     function updateService(uint256 serviceNonce, bool enabled) external;
 
     function requestServiceExecution(
