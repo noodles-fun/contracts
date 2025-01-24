@@ -2,6 +2,11 @@
   "manifestVersion": "3.2",
   "proxies": [
     {
+      "address": "0x1CCdaE8E383BeBea43D23DA0cbf1fC421fa485d0",
+      "txHash": "0x1447e9c4dfa6e0ba09af0071f39937c95f5f23d2abb7b70810012004c4679ecf",
+      "kind": "transparent"
+    },
+    {
       "address": "0x00fbeC67F05fc30898670BB7510863216E4d2C95",
       "txHash": "0x10d762713686416a9daa1ba81f21a200572c70842aa2c4efa7b1d38e20886cfc",
       "kind": "transparent"
@@ -13,6 +18,119 @@
     }
   ],
   "impls": {
+    "d51038e7e146c211d0db30966ffb6aef1acf8d3c4c888ea1412c9e582447dc00": {
+      "address": "0x70E2d27AA595859123c7aE83a3b27e781BF3C588",
+      "txHash": "0xacc4e1a669fe834f35a75852353df878fdb6e6be5c589bf5ccd1ba61552abf71",
+      "layout": {
+        "solcVersion": "0.8.26",
+        "storage": [],
+        "types": {
+          "t_uint256": {
+            "label": "uint256"
+          },
+          "t_string_storage": {
+            "label": "string"
+          },
+          "t_address": {
+            "label": "address"
+          },
+          "t_mapping(t_uint256,t_address)": {
+            "label": "mapping(uint256 => address)"
+          },
+          "t_mapping(t_address,t_uint256)": {
+            "label": "mapping(address => uint256)"
+          },
+          "t_mapping(t_address,t_mapping(t_address,t_bool))": {
+            "label": "mapping(address => mapping(address => bool))"
+          },
+          "t_mapping(t_address,t_bool)": {
+            "label": "mapping(address => bool)"
+          },
+          "t_bool": {
+            "label": "bool"
+          },
+          "t_uint64": {
+            "label": "uint64"
+          }
+        },
+        "namespaces": {
+          "erc7201:noodles.PointsSBT": [
+            {
+              "contract": "PointsSBT",
+              "label": "totalSupply",
+              "type": "t_uint256",
+              "src": "contracts/PointsSBT.sol:18"
+            },
+            {
+              "contract": "PointsSBT",
+              "label": "uri",
+              "type": "t_string_storage",
+              "src": "contracts/PointsSBT.sol:19"
+            }
+          ],
+          "erc7201:openzeppelin.storage.Ownable": [
+            {
+              "contract": "OwnableUpgradeable",
+              "label": "_owner",
+              "type": "t_address",
+              "src": "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol:24"
+            }
+          ],
+          "erc7201:openzeppelin.storage.ERC721": [
+            {
+              "contract": "ERC721Upgradeable",
+              "label": "_name",
+              "type": "t_string_storage",
+              "src": "@openzeppelin/contracts-upgradeable/token/ERC721/ERC721Upgradeable.sol:27"
+            },
+            {
+              "contract": "ERC721Upgradeable",
+              "label": "_symbol",
+              "type": "t_string_storage",
+              "src": "@openzeppelin/contracts-upgradeable/token/ERC721/ERC721Upgradeable.sol:30"
+            },
+            {
+              "contract": "ERC721Upgradeable",
+              "label": "_owners",
+              "type": "t_mapping(t_uint256,t_address)",
+              "src": "@openzeppelin/contracts-upgradeable/token/ERC721/ERC721Upgradeable.sol:32"
+            },
+            {
+              "contract": "ERC721Upgradeable",
+              "label": "_balances",
+              "type": "t_mapping(t_address,t_uint256)",
+              "src": "@openzeppelin/contracts-upgradeable/token/ERC721/ERC721Upgradeable.sol:34"
+            },
+            {
+              "contract": "ERC721Upgradeable",
+              "label": "_tokenApprovals",
+              "type": "t_mapping(t_uint256,t_address)",
+              "src": "@openzeppelin/contracts-upgradeable/token/ERC721/ERC721Upgradeable.sol:36"
+            },
+            {
+              "contract": "ERC721Upgradeable",
+              "label": "_operatorApprovals",
+              "type": "t_mapping(t_address,t_mapping(t_address,t_bool))",
+              "src": "@openzeppelin/contracts-upgradeable/token/ERC721/ERC721Upgradeable.sol:38"
+            }
+          ],
+          "erc7201:openzeppelin.storage.Initializable": [
+            {
+              "contract": "Initializable",
+              "label": "_initialized",
+              "type": "t_uint64",
+              "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:69"
+            },
+            {
+              "contract": "Initializable",
+              "label": "_initializing",
+              "type": "t_bool",
+              "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:73"
+            }
+          ]
+        }
+      }
+    },
     "3600f187e2e5b4f1179c33fb6a0b058c5cfaacb00f143cc54d0bdf7e27724427": {
       "address": "0x3e67ce7f19Bfb8594b392B22837BB0E60Dfd9867",
       "txHash": "0xf3697b97085e268ece3727c597d62ec0ff185168f84e6506549f32594db391b4",
@@ -29,13 +147,13 @@
           "t_address": {
             "label": "address"
           },
-          "t_mapping(t_bytes32,t_struct(Visibility)8206_storage)": {
+          "t_mapping(t_bytes32,t_struct(Visibility)11394_storage)": {
             "label": "mapping(bytes32 => struct IVisibilityCredits.Visibility)"
           },
           "t_bytes32": {
             "label": "bytes32"
           },
-          "t_struct(Visibility)8206_storage": {
+          "t_struct(Visibility)11394_storage": {
             "label": "struct IVisibilityCredits.Visibility",
             "members": [
               {
@@ -114,7 +232,7 @@
             {
               "contract": "VisibilityCredits",
               "label": "visibilityCredits",
-              "type": "t_mapping(t_bytes32,t_struct(Visibility)8206_storage)",
+              "type": "t_mapping(t_bytes32,t_struct(Visibility)11394_storage)",
               "src": "contracts/VisibilityCredits.sol:75"
             }
           ],
@@ -196,16 +314,16 @@
         "solcVersion": "0.8.26",
         "storage": [],
         "types": {
-          "t_contract(IVisibilityCredits)8389": {
+          "t_contract(IVisibilityCredits)11577": {
             "label": "contract IVisibilityCredits"
           },
           "t_uint256": {
             "label": "uint256"
           },
-          "t_mapping(t_uint256,t_struct(Service)8422_storage)": {
+          "t_mapping(t_uint256,t_struct(Service)11610_storage)": {
             "label": "mapping(uint256 => struct IVisibilityServices.Service)"
           },
-          "t_struct(Service)8422_storage": {
+          "t_struct(Service)11610_storage": {
             "label": "struct IVisibilityServices.Service",
             "members": [
               {
@@ -230,7 +348,7 @@
               },
               {
                 "label": "executions",
-                "type": "t_mapping(t_uint256,t_struct(Execution)8406_storage)"
+                "type": "t_mapping(t_uint256,t_struct(Execution)11594_storage)"
               }
             ]
           },
@@ -240,15 +358,15 @@
           "t_string_storage": {
             "label": "string"
           },
-          "t_mapping(t_uint256,t_struct(Execution)8406_storage)": {
+          "t_mapping(t_uint256,t_struct(Execution)11594_storage)": {
             "label": "mapping(uint256 => struct IVisibilityServices.Execution)"
           },
-          "t_struct(Execution)8406_storage": {
+          "t_struct(Execution)11594_storage": {
             "label": "struct IVisibilityServices.Execution",
             "members": [
               {
                 "label": "state",
-                "type": "t_enum(ExecutionState)8398"
+                "type": "t_enum(ExecutionState)11586"
               },
               {
                 "label": "requester",
@@ -260,7 +378,7 @@
               }
             ]
           },
-          "t_enum(ExecutionState)8398": {
+          "t_enum(ExecutionState)11586": {
             "label": "enum IVisibilityServices.ExecutionState",
             "members": [
               "UNINITIALIZED",
@@ -308,7 +426,7 @@
             {
               "contract": "VisibilityServices",
               "label": "visibilityCredits",
-              "type": "t_contract(IVisibilityCredits)8389",
+              "type": "t_contract(IVisibilityCredits)11577",
               "src": "contracts/VisibilityServices.sol:23"
             },
             {
@@ -320,7 +438,7 @@
             {
               "contract": "VisibilityServices",
               "label": "services",
-              "type": "t_mapping(t_uint256,t_struct(Service)8422_storage)",
+              "type": "t_mapping(t_uint256,t_struct(Service)11610_storage)",
               "src": "contracts/VisibilityServices.sol:25"
             }
           ],

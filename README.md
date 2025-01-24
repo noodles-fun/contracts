@@ -8,12 +8,13 @@
 2. **Trade Instantly:** Use a bonding curve to buy or sell tokens. No need for liquidity pools or order books.
 3. **Spend Tokens for Promotions:** The X account owner can accept tokens as payment for services, such as tweets or pinned posts.
 
-## Contracts
+## Upgradeable Contracts
 
-|Contract|Description|Mainnet address|Testnet address|
+|Contract|Description|Mainnet address (Proxy)|Testnet address (Proxy)|
 |--------|--------------------|---------------|---------------|
 | **VisibilityCredits**  | Implements a bonding curve where token price = A × supply² + B × supply + basePrice. Price grows as supply grows | Coming Soon      | [0x00fbeC67F05fc30898670BB7510863216E4d2C95](https://explorer.testnet.abs.xyz/address/0x00fbeC67F05fc30898670BB7510863216E4d2C95)        |
 | **VisibilityServices** | Lets creators accept tokens for off-chain promotion services.                                                   | Coming Soon      | [0xe9f915bE546BE513c880E39E515D52002ced7c7b](https://explorer.testnet.abs.xyz/address/0xe9f915bE546BE513c880E39E515D52002ced7c7b)        |
+| **PointsSBT**  | Soulbound tokens to reward early users | Coming Soon      | [0x1CCdaE8E383BeBea43D23DA0cbf1fC421fa485d0](https://explorer.testnet.abs.xyz/address/0x1CCdaE8E383BeBea43D23DA0cbf1fC421fa485d0)        |
 
 ---
 

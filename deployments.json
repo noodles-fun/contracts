@@ -1,9 +1,25 @@
 {
   "11124": {
+    "wallets": {
+      "deployer": "0x1B30bFa535f8c3eB6Ca66c63C6c0BE65c70A26BE",
+      "admin": "0x8811c5f40F1bF008c91e084BF4159b8cDEd2898B",
+      "backend": "0x8811c5f40F1bF008c91e084BF4159b8cDEd2898B",
+      "disputeResolver": "0x8811c5f40F1bF008c91e084BF4159b8cDEd2898B",
+      "treasury": "0xda6bbE41370cA0c2b132ebe5FBeD4c0782E0eCB5"
+    },
+    "PointsSBT": {
+      "implementation": "0x70E2d27AA595859123c7aE83a3b27e781BF3C588",
+      "proxyAdmin": "0xa068141108d3De2148dfFfbaBAEE0160156E92aD",
+      "proxy": "0x1CCdaE8E383BeBea43D23DA0cbf1fC421fa485d0"
+    },
     "VisibilityCredits": {
+      "implementation": "0x3e67ce7f19Bfb8594b392B22837BB0E60Dfd9867",
+      "proxyAdmin": "0x44Fd48311ba9D395862C975c76b37F756F353cF3",
       "proxy": "0x00fbeC67F05fc30898670BB7510863216E4d2C95"
     },
     "VisibilityServices": {
+      "implementation": "0xa0EcAf19A31Af9E07b36c735b25928c97bb604Fa",
+      "proxyAdmin": "0x70CC66EA34533Aeb39D0eA136fa6ADA21bbB792d",
       "proxy": "0xe9f915bE546BE513c880E39E515D52002ced7c7b"
     }
   }

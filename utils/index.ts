@@ -3,6 +3,7 @@ import * as hre from 'hardhat'
 import { Deployer } from '@matterlabs/hardhat-zksync-deploy'
 import dotenv from 'dotenv'
 import { ethers, getAddress } from 'ethers'
+import { getImplementationAddress } from '@openzeppelin/upgrades-core'
 
 import '@matterlabs/hardhat-zksync-node/dist/type-extensions'
 import '@matterlabs/hardhat-zksync-verify/dist/src/type-extensions'
@@ -10,15 +11,46 @@ import '@matterlabs/hardhat-zksync-verify/dist/src/type-extensions'
 // Load env file
 dotenv.config()
 
-// Define the EIP-1967 implementation slot
-const EIP1967_IMPLEMENTATION_SLOT =
-  '0x360894a13ba1a3210667c828492db98dca3e2076cc3735a920a3ca505d382bbc'
+/*
+export const getProxyAdminAddress = async (proxyAddress: string) => {
+  try {
+
+    // Define the EIP-1967 implementation slot
+    const EIP1967_IMPLEMENTATION_SLOT =
+      '0x360894a13ba1a3210667c828492db98dca3e2076cc3735a920a3ca505d382bbc'
+    
+        const provider = getProvider()
+    
+        // Fetch the storage value at the implementation slot
+        const storageValue = await provider.getStorage(
+          proxyAddress,
+          EIP1967_IMPLEMENTATION_SLOT
+        )
+    
+        // The implementation address is the last 20 bytes of the storage value
+        const implAddress = getAddress(`0x${storageValue.slice(-40)}`)
+    
+        return implAddress
+      } catch (error) {
+        console.error(
+          `Failed to fetch proxy admin address for proxy ${proxyAddress}:`,
+          error
+        )
+        throw error
+      }
+}
+
 
 // Function to get the implementation address from a proxy
 export const getImplementationAddress = async (
   proxyAddress: string
 ): Promise<string> => {
   try {
+
+// Define the EIP-1967 implementation slot
+const EIP1967_IMPLEMENTATION_SLOT =
+  '0x360894a13ba1a3210667c828492db98dca3e2076cc3735a920a3ca505d382bbc'
+
     const provider = getProvider()
 
     // Fetch the storage value at the implementation slot
@@ -39,6 +71,7 @@ export const getImplementationAddress = async (
     throw error
   }
 }
+  */
 
 export const getProvider = () => {
   const rpcUrl = hre.network.config.url
@@ -230,7 +263,10 @@ export const deployProxyContract = async (
   await contract.waitForDeployment()
 
   const proxyAddress = await contract.getAddress()
-  const implAddress = await getImplementationAddress(proxyAddress)
+  const implAddress = await getImplementationAddress(
+    getProvider(),
+    proxyAddress
+  )
 
   // Display contract deployment info
   log(`\n"${artifact.contractName}" was successfully deployed !`)
