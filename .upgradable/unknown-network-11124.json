@@ -2,25 +2,25 @@
   "manifestVersion": "3.2",
   "proxies": [
     {
-      "address": "0x1CCdaE8E383BeBea43D23DA0cbf1fC421fa485d0",
-      "txHash": "0x1447e9c4dfa6e0ba09af0071f39937c95f5f23d2abb7b70810012004c4679ecf",
+      "address": "0x53D523F98dFd0B4b8ADd9306D345d6e709AD6b18",
+      "txHash": "0xf1fbbd36db23a6da4822d475c72341b6bbc3ab198bd78eaf02bedfe796f441db",
       "kind": "transparent"
     },
     {
-      "address": "0x00fbeC67F05fc30898670BB7510863216E4d2C95",
-      "txHash": "0x10d762713686416a9daa1ba81f21a200572c70842aa2c4efa7b1d38e20886cfc",
+      "address": "0x25aaca9fD684CD710BB87bd8f87A2a9F20e5a269",
+      "txHash": "0x6cfe116ac16a8fe5207fbca8f11858c11ea6347025375dd9b9babcab9d086903",
       "kind": "transparent"
     },
     {
-      "address": "0xe9f915bE546BE513c880E39E515D52002ced7c7b",
-      "txHash": "0x0aed94afd4fa478e8beed37374343b3e4d75d5931753a4689a41a700a2f1cfbf",
+      "address": "0x446aC2A937b7ef299402D97a9132CD2ce7Ff73b1",
+      "txHash": "0x188d221635fbb1d6e7e006e5226f28082967fe383f4acfd1703347bf2eda26d6",
       "kind": "transparent"
     }
   ],
   "impls": {
-    "d51038e7e146c211d0db30966ffb6aef1acf8d3c4c888ea1412c9e582447dc00": {
-      "address": "0x70E2d27AA595859123c7aE83a3b27e781BF3C588",
-      "txHash": "0xacc4e1a669fe834f35a75852353df878fdb6e6be5c589bf5ccd1ba61552abf71",
+    "8765d60352b95ee18384d16186f6e90d434d67b0d770412a3be81437855c621c": {
+      "address": "0x26C1986339ca56AE77cf57114DD44F7c3B4540bE",
+      "txHash": "0x4623b9560e997c018b7b4a9ade9d98194ac59388c4ef1ea4bf1003a1b18f8cb0",
       "layout": {
         "solcVersion": "0.8.26",
         "storage": [],
@@ -131,9 +131,9 @@
         }
       }
     },
-    "3600f187e2e5b4f1179c33fb6a0b058c5cfaacb00f143cc54d0bdf7e27724427": {
-      "address": "0x3e67ce7f19Bfb8594b392B22837BB0E60Dfd9867",
-      "txHash": "0xf3697b97085e268ece3727c597d62ec0ff185168f84e6506549f32594db391b4",
+    "9d86a5a2c8ae39ee6faf3137c82bb7625b7fb8e3bbae4ee1af3479f2981e7528": {
+      "address": "0x91AD8aFe286FF927d28C4991119aaD38106E8D1A",
+      "txHash": "0x7d34eb8b4d9b253e128cfaed82c91ba2cdee906ee115357d6c7a09c29bec873e",
       "layout": {
         "solcVersion": "0.8.26",
         "storage": [],
@@ -147,13 +147,13 @@
           "t_address": {
             "label": "address"
           },
-          "t_mapping(t_bytes32,t_struct(Visibility)11394_storage)": {
+          "t_mapping(t_bytes32,t_struct(Visibility)11395_storage)": {
             "label": "mapping(bytes32 => struct IVisibilityCredits.Visibility)"
           },
           "t_bytes32": {
             "label": "bytes32"
           },
-          "t_struct(Visibility)11394_storage": {
+          "t_struct(Visibility)11395_storage": {
             "label": "struct IVisibilityCredits.Visibility",
             "members": [
               {
@@ -232,7 +232,7 @@
             {
               "contract": "VisibilityCredits",
               "label": "visibilityCredits",
-              "type": "t_mapping(t_bytes32,t_struct(Visibility)11394_storage)",
+              "type": "t_mapping(t_bytes32,t_struct(Visibility)11395_storage)",
               "src": "contracts/VisibilityCredits.sol:75"
             }
           ],
@@ -307,23 +307,23 @@
         }
       }
     },
-    "4c0f5ac43aee96bbfd72eed950b0c2a728e2bd19213c3e10431c722057fb1b7e": {
-      "address": "0xa0EcAf19A31Af9E07b36c735b25928c97bb604Fa",
-      "txHash": "0xa4988e6ac380dbc16feced58d74b079460242189821725e7e9a90248b3b4a0fa",
+    "2851def9048b66a7626c75d08a85185ba8fd1f6884f9704d3904104d8383734a": {
+      "address": "0xE11F34090E3280A81979ae1cCCcf98F262E48338",
+      "txHash": "0x54a00495118ca1c0f76fb876e80bbcf6aa4e90619bd91b3ce489bc894d107df5",
       "layout": {
         "solcVersion": "0.8.26",
         "storage": [],
         "types": {
-          "t_contract(IVisibilityCredits)11577": {
+          "t_contract(IVisibilityCredits)11578": {
             "label": "contract IVisibilityCredits"
           },
           "t_uint256": {
             "label": "uint256"
           },
-          "t_mapping(t_uint256,t_struct(Service)11610_storage)": {
+          "t_mapping(t_uint256,t_struct(Service)11611_storage)": {
             "label": "mapping(uint256 => struct IVisibilityServices.Service)"
           },
-          "t_struct(Service)11610_storage": {
+          "t_struct(Service)11611_storage": {
             "label": "struct IVisibilityServices.Service",
             "members": [
               {
@@ -348,7 +348,7 @@
               },
               {
                 "label": "executions",
-                "type": "t_mapping(t_uint256,t_struct(Execution)11594_storage)"
+                "type": "t_mapping(t_uint256,t_struct(Execution)11595_storage)"
               }
             ]
           },
@@ -358,15 +358,15 @@
           "t_string_storage": {
             "label": "string"
           },
-          "t_mapping(t_uint256,t_struct(Execution)11594_storage)": {
+          "t_mapping(t_uint256,t_struct(Execution)11595_storage)": {
             "label": "mapping(uint256 => struct IVisibilityServices.Execution)"
           },
-          "t_struct(Execution)11594_storage": {
+          "t_struct(Execution)11595_storage": {
             "label": "struct IVisibilityServices.Execution",
             "members": [
               {
                 "label": "state",
-                "type": "t_enum(ExecutionState)11586"
+                "type": "t_enum(ExecutionState)11587"
               },
               {
                 "label": "requester",
@@ -378,7 +378,7 @@
               }
             ]
           },
-          "t_enum(ExecutionState)11586": {
+          "t_enum(ExecutionState)11587": {
             "label": "enum IVisibilityServices.ExecutionState",
             "members": [
               "UNINITIALIZED",
@@ -426,7 +426,7 @@
             {
               "contract": "VisibilityServices",
               "label": "visibilityCredits",
-              "type": "t_contract(IVisibilityCredits)11577",
+              "type": "t_contract(IVisibilityCredits)11578",
               "src": "contracts/VisibilityServices.sol:23"
             },
             {
@@ -438,7 +438,7 @@
             {
               "contract": "VisibilityServices",
               "label": "services",
-              "type": "t_mapping(t_uint256,t_struct(Service)11610_storage)",
+              "type": "t_mapping(t_uint256,t_struct(Service)11611_storage)",
               "src": "contracts/VisibilityServices.sol:25"
             }
           ],

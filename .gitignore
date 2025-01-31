@@ -3,6 +3,7 @@ node_modules
 
 # Local chain data
 era_test_node.log
+anvil-zksync.log
 .upgradable/ZKsync-era-test-node.json
 
 # Hardhat files

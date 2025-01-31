@@ -7,20 +7,23 @@ import { getProvider, verifyContract } from '../utils'
 import { deployments } from '../utils/deployments'
 
 export default async function (hre: HardhatRuntimeEnvironment) {
-  if (!process.env.ADMIN_PRIVATE_KEY) {
-    throw new Error('Please set your ADMIN_PRIVATE_KEY in a .env file')
+  if (!process.env.DEPLOYER_PRIVATE_KEY) {
+    throw new Error('Please set your DEPLOYER_PRIVATE_KEY in a .env file')
+  }
+  if (!process.env.ADMIN_ADDRESS) {
+    throw new Error('Please set your ADMIN_ADDRESS in a .env file')
   }
 
   const provider = getProvider()
 
-  const wallet = new Wallet(process.env.ADMIN_PRIVATE_KEY)
-  const admin = new Deployer(hre, wallet)
+  const wallet = new Wallet(process.env.DEPLOYER_PRIVATE_KEY)
+  const deployer = new Deployer(hre, wallet)
 
   const chainId = (await getProvider().getNetwork()).chainId.toString()
 
   const pointsSBTContractProxyAddr = deployments[chainId].PointsSBT.proxy
 
-  const PointsSBT = await admin.loadArtifact('PointsSBT')
+  const PointsSBT = await deployer.loadArtifact('PointsSBT')
 
   console.log('Upgrading PointsSBT...', {
     pointsSBTContractProxyAddr,
@@ -28,7 +31,7 @@ export default async function (hre: HardhatRuntimeEnvironment) {
   })
 
   const psUpgrade = await hre.zkUpgrades.upgradeProxy(
-    admin.zkWallet,
+    deployer.zkWallet,
     pointsSBTContractProxyAddr,
     PointsSBT
   )
@@ -44,7 +47,7 @@ export default async function (hre: HardhatRuntimeEnvironment) {
 
   const visibilityCreditsProxyAddr =
     deployments[chainId].VisibilityCredits.proxy
-  const VisibilityCredits = await admin.loadArtifact('VisibilityCredits')
+  const VisibilityCredits = await deployer.loadArtifact('VisibilityCredits')
 
   console.log('Upgrading VisibilityCredits...', {
     visibilityCreditsProxyAddr,
@@ -52,7 +55,7 @@ export default async function (hre: HardhatRuntimeEnvironment) {
   })
 
   const vcUpgrade = await hre.zkUpgrades.upgradeProxy(
-    admin.zkWallet,
+    deployer.zkWallet,
     visibilityCreditsProxyAddr,
     VisibilityCredits
   )
@@ -69,7 +72,7 @@ export default async function (hre: HardhatRuntimeEnvironment) {
   const visibilityServicesProxyAddr =
     deployments[chainId].VisibilityServices.proxy
 
-  const VisibilityService = await admin.loadArtifact('VisibilityServices')
+  const VisibilityService = await deployer.loadArtifact('VisibilityServices')
 
   console.log('Upgrading VisibilityServices...', {
     visibilityServicesProxyAddr,
@@ -77,7 +80,7 @@ export default async function (hre: HardhatRuntimeEnvironment) {
   })
 
   const vsUpgrade = await hre.zkUpgrades.upgradeProxy(
-    admin.zkWallet,
+    deployer.zkWallet,
     visibilityServicesProxyAddr,
     VisibilityService
   )
@@ -93,17 +96,21 @@ export default async function (hre: HardhatRuntimeEnvironment) {
 
   console.log('Verifying implementations contracts...')
 
-  await verifyContract({
-    address: psImplementationAddress
-  })
+  try {
+    await verifyContract({
+      address: psImplementationAddress
+    })
 
-  await verifyContract({
-    address: vcImplementationAddress
-  })
+    await verifyContract({
+      address: vcImplementationAddress
+    })
 
-  await verifyContract({
-    address: vsImplementationAddress
-  })
+    await verifyContract({
+      address: vsImplementationAddress
+    })
+  } catch (e) {
+    console.log(`Error verifying contract: ${e}`)
+  }
 
   deployments[hre.network.config.chainId as number] = {
     wallets: deployments[hre.network.config.chainId as number].wallets,
@@ -132,5 +139,23 @@ export default async function (hre: HardhatRuntimeEnvironment) {
     }
   }
   fs.writeFileSync('deployments.json', JSON.stringify(deployments, null, 2))
+
+  console.log('Changing proxy admin owner...')
+  await hre.zkUpgrades.admin.transferProxyAdminOwnership(
+    pointsSBTContractProxyAddr,
+    process.env.ADMIN_ADDRESS,
+    deployer.zkWallet
+  )
+  await hre.zkUpgrades.admin.transferProxyAdminOwnership(
+    visibilityCreditsProxyAddr,
+    process.env.ADMIN_ADDRESS,
+    deployer.zkWallet
+  )
+  await hre.zkUpgrades.admin.transferProxyAdminOwnership(
+    visibilityServicesProxyAddr,
+    process.env.ADMIN_ADDRESS,
+    deployer.zkWallet
+  )
+
   console.log('🥳 Done')
 }

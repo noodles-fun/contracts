@@ -16,29 +16,29 @@ contract VisibilityCredits is
     AccessControlDefaultAdminRulesUpgradeable,
     ReentrancyGuardUpgradeable
 {
+    /// @dev to avoid overflow on bonding curve computations
+    uint64 public constant MAX_TOTAL_SUPPLY = type(uint64).max; // 2^64 - 1 = 18_446_744_073_709_551_615
+
     /**
      * @notice Users can purchase and sell visibility credits according to a bonding curve.
      *
      * @dev The bonding curve is defined by the formula:
-     *        PRICE = BASE_PRICE + A * totalSupply^2 + B * totalSupply
+     *        PRICE (in wei) = BASE_PRICE + A * totalSupply^2 + B * totalSupply
      *      - BASE_PRICE: The initial price when totalSupply is zero.
      *      - A: Bonding curve quadratic factor, a constant that determine the curvature of the price function
      *      - B: Bonding curve linear factor, a constant that determine the slope of the price function
      */
-    uint64 public constant A = 15_000_000_000; // 0.000000015 ether;
-    uint64 public constant B = 25_000_000_000_000; // 0.000025 ether;
-    uint64 public constant BASE_PRICE = 10_000_000_000_000_000; // 0.01 ether;
-
-    /// @dev to avoid overflow on bonding curve computations
-    uint64 public constant MAX_TOTAL_SUPPLY = type(uint64).max; // 2^64 - 1 = 18_446_744_073_709_551_615
+    uint16 public constant A = 15;
+    uint32 public constant B = 25_000;
+    uint32 public constant BASE_PRICE = 10_000_000;
 
     /// @notice Fee percentages in ppm (parts per million).
     uint32 public constant FEE_DENOMINATOR = 1_000_000; // Using parts per million (ppm)
     uint16 public constant CREATOR_FEE = 20_000; // 2% fee to the creator for each trade
     uint16 public constant PROTOCOL_FEE = 30_000; // 3% base fee, should be higher than referrer fee + partner fee + referral bonus fee
     uint16 public constant REFERRER_FEE = 10_000; // 1% fee to the referrer (if any, deduced from protocol fee)
-    uint8 public constant PARTNER_FEE = 250; // 0.25% bonus for the partner/marketing agency if linked to a referrer (deduced from protocol fee)
-    uint8 public constant PARTNER_REFERRER_BONUS = 250; // 0.25% bonus for the referrer if linked to a partner (deduced from protocol fee)
+    uint16 public constant PARTNER_FEE = 250; // 0.25% bonus for the partner/marketing agency if linked to a referrer (deduced from protocol fee)
+    uint16 public constant PARTNER_REFERRER_BONUS = 250; // 0.25% bonus for the referrer if linked to a partner (deduced from protocol fee)
 
     bytes32 public constant CREDITS_TRANSFER_ROLE =
         keccak256("CREDITS_TRANSFER_ROLE");
@@ -538,10 +538,8 @@ contract VisibilityCredits is
     ) private view returns (Trade memory trade) {
         VisibilityCreditsStorage storage $ = _getVisibilityCreditsStorage();
 
-        if (!isBuy) {
-            if (totalSupply < amount) {
-                revert InvalidAmount();
-            }
+        if (!isBuy && totalSupply < amount) {
+            revert InvalidAmount();
         }
 
         if (user == address(0)) {
@@ -562,23 +560,29 @@ contract VisibilityCredits is
             ? $.referrersToPartners[trade.referrer]
             : address(0);
 
-        if (trade.partner != address(0)) {
-            trade.partnerFee =
-                (trade.tradeCost * PARTNER_FEE) /
-                FEE_DENOMINATOR;
-        }
+        uint256 partnerFeeToApply = trade.partner != address(0)
+            ? PARTNER_FEE
+            : 0;
+        uint256 referrerFeeToApply = trade.referrer != address(0)
+            ? trade.partner != address(0)
+                ? REFERRER_FEE + PARTNER_REFERRER_BONUS
+                : REFERRER_FEE
+            : 0;
+        uint256 protocolFeeToApply = PROTOCOL_FEE -
+            referrerFeeToApply -
+            partnerFeeToApply;
 
-        if (trade.referrer != address(0)) {
-            trade.referrerFee = trade.partner != address(0)
-                ? (trade.tradeCost * (REFERRER_FEE + PARTNER_REFERRER_BONUS)) /
-                    FEE_DENOMINATOR
-                : (trade.tradeCost * REFERRER_FEE) / FEE_DENOMINATOR;
-        }
+        trade.partnerFee =
+            (trade.tradeCost * partnerFeeToApply) /
+            FEE_DENOMINATOR;
+
+        trade.referrerFee =
+            (trade.tradeCost * referrerFeeToApply) /
+            FEE_DENOMINATOR;
 
         trade.protocolFee =
-            ((trade.tradeCost * PROTOCOL_FEE) / FEE_DENOMINATOR) -
-            trade.referrerFee -
-            trade.partnerFee;
+            (trade.tradeCost * protocolFeeToApply) /
+            FEE_DENOMINATOR;
     }
 
     /**

@@ -11,68 +11,6 @@ import '@matterlabs/hardhat-zksync-verify/dist/src/type-extensions'
 // Load env file
 dotenv.config()
 
-/*
-export const getProxyAdminAddress = async (proxyAddress: string) => {
-  try {
-
-    // Define the EIP-1967 implementation slot
-    const EIP1967_IMPLEMENTATION_SLOT =
-      '0x360894a13ba1a3210667c828492db98dca3e2076cc3735a920a3ca505d382bbc'
-    
-        const provider = getProvider()
-    
-        // Fetch the storage value at the implementation slot
-        const storageValue = await provider.getStorage(
-          proxyAddress,
-          EIP1967_IMPLEMENTATION_SLOT
-        )
-    
-        // The implementation address is the last 20 bytes of the storage value
-        const implAddress = getAddress(`0x${storageValue.slice(-40)}`)
-    
-        return implAddress
-      } catch (error) {
-        console.error(
-          `Failed to fetch proxy admin address for proxy ${proxyAddress}:`,
-          error
-        )
-        throw error
-      }
-}
-
-
-// Function to get the implementation address from a proxy
-export const getImplementationAddress = async (
-  proxyAddress: string
-): Promise<string> => {
-  try {
-
-// Define the EIP-1967 implementation slot
-const EIP1967_IMPLEMENTATION_SLOT =
-  '0x360894a13ba1a3210667c828492db98dca3e2076cc3735a920a3ca505d382bbc'
-
-    const provider = getProvider()
-
-    // Fetch the storage value at the implementation slot
-    const storageValue = await provider.getStorage(
-      proxyAddress,
-      EIP1967_IMPLEMENTATION_SLOT
-    )
-
-    // The implementation address is the last 20 bytes of the storage value
-    const implAddress = getAddress(`0x${storageValue.slice(-40)}`)
-
-    return implAddress
-  } catch (error) {
-    console.error(
-      `Failed to fetch implementation address for proxy ${proxyAddress}:`,
-      error
-    )
-    throw error
-  }
-}
-  */
-
 export const getProvider = () => {
   const rpcUrl = hre.network.config.url
   if (!rpcUrl)
@@ -204,12 +142,16 @@ export const deployContract = async (
 
   if (!options?.noVerify && hre.network.config.verifyURL) {
     log(`Requesting contract verification...`)
-    await verifyContract({
-      address,
-      contract: fullContractSource,
-      constructorArguments: constructorArgs,
-      bytecode: artifact.bytecode
-    })
+    try {
+      await verifyContract({
+        address,
+        contract: fullContractSource,
+        constructorArguments: constructorArgs,
+        bytecode: artifact.bytecode
+      })
+    } catch (e) {
+      console.log(`Error verifying contract: ${e}`)
+    }
   }
 
   return contract
@@ -275,13 +217,17 @@ export const deployProxyContract = async (
 
   if (!options?.noVerify && hre.network.config.verifyURL) {
     log(`Requesting impl contract verification...`)
-    await verifyContract({
-      address: implAddress
-    })
-    console.log(`Requesting proxy contract verification...`)
-    await verifyContract({
-      address: proxyAddress
-    })
+    try {
+      await verifyContract({
+        address: implAddress
+      })
+      console.log(`Requesting proxy contract verification...`)
+      await verifyContract({
+        address: proxyAddress
+      })
+    } catch (e) {
+      console.log(`Error verifying contract: ${e}`)
+    }
   }
 
   return contract

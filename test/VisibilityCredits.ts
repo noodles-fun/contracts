@@ -251,7 +251,10 @@ describe('VisibilityCredits', function () {
         tx = await creditsContract
           .connect(user2)
           .sellCredits(visibilityId1, amount, referrer.address)
-        await tx.wait()
+        const { gasUsed, gasPrice } = (await tx.wait()) || {
+          gasUsed: 0n,
+          gasPrice: 0n
+        }
 
         const user2BalanceAfter = await user2.getBalance()
         const creditsContractBalanceAfter = await provider.getBalance(
@@ -260,7 +263,9 @@ describe('VisibilityCredits', function () {
         const treasuryBalanceAfter = await treasury.getBalance()
         const referrerBalanceAfter = await referrer.getBalance()
 
-        expect(user2BalanceAfter).to.be.greaterThan(user2BalanceBefore)
+        expect(user2BalanceAfter).to.be.equal(
+          user2BalanceBefore + reimbursement - gasUsed * gasPrice
+        )
         expect(
           creditsContractBalanceAfter - creditsContractBalanceBefore
         ).to.be.equal(-reimbursement - protocolFee - referrerFee)
@@ -688,7 +693,7 @@ describe('VisibilityCredits', function () {
         .setReferrerPartner(referrer.address, partner.address)
       await tx.wait()
 
-      const buyAmount = 6
+      const buyAmount = 2
 
       const [
         buyCost,
@@ -719,6 +724,7 @@ describe('VisibilityCredits', function () {
         ((await creditsContract.CREATOR_FEE()) * tradeCostBuy) /
           (await creditsContract.FEE_DENOMINATOR())
       )
+
       expect(protocolFeeBuy).to.be.equal(
         (((await creditsContract.PROTOCOL_FEE()) -
           (await creditsContract.REFERRER_FEE()) -
@@ -806,7 +812,7 @@ describe('VisibilityCredits', function () {
         buyAmount
       )
 
-      const sellAmount = 4
+      const sellAmount = 1
 
       const [
         reimbursement,
@@ -1074,7 +1080,10 @@ describe('VisibilityCredits', function () {
       tx = await creditsContract
         .connect(user1)
         .sellCredits(visibilityId1, minimalAmount, referrer.address)
-      await tx.wait()
+      const { gasUsed, gasPrice } = (await tx.wait()) || {
+        gasUsed: 0n,
+        gasPrice: 0n
+      }
 
       const user1BalanceAfter = await user1.getBalance()
       const treasuryBalanceAfter = await treasury.getBalance()
@@ -1083,7 +1092,9 @@ describe('VisibilityCredits', function () {
         await creditsContract.getAddress()
       )
 
-      expect(user1BalanceAfter).to.be.greaterThan(user1BalanceBefore)
+      expect(user1BalanceAfter).to.be.equal(
+        user1BalanceBefore + reimbursement - gasUsed * gasPrice
+      )
       expect(contractBalanceAfterSell - contractBalanceAfterBuy).to.be.equal(
         -reimbursement - protocolFee - referrerFee
       )

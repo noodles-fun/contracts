@@ -15,7 +15,7 @@ const config: HardhatUserConfig = {
     version: '0.8.26'
   },
   zksolc: {
-    version: '1.5.10',
+    version: '1.5.11',
     settings: {
       // Note: This must be true to call NonceHolder & ContractDeployer system contracts
       enableEraVMExtensions: true
@@ -23,13 +23,19 @@ const config: HardhatUserConfig = {
   },
 
   networks: {
+    abstract: {
+      chainId: 2741,
+      url: 'https://api.mainnet.abs.xyz',
+      ethNetwork: 'sepolia',
+      zksync: true,
+      verifyURL: 'https://api.abscan.org/api'
+    },
     abstractTestnet: {
       chainId: 11124,
       url: 'https://api.testnet.abs.xyz',
       ethNetwork: 'sepolia',
       zksync: true,
-      verifyURL:
-        'https://api-explorer-verify.testnet.abs.xyz/contract_verification'
+      verifyURL: 'https://api-sepolia.abscan.org/api'
     },
     localhost: {
       // chainId: 11124,
@@ -41,23 +47,31 @@ const config: HardhatUserConfig = {
       zksync: true
     }
   },
-  /*
+
   etherscan: {
     apiKey: {
       abstractTestnet: process.env.EXPLORER_API_KEY as string
     },
     customChains: [
       {
+        network: 'abstract',
+        chainId: 2741,
+        urls: {
+          apiURL: 'https://api.abscan.org/api',
+          browserURL: 'https://abscan.org'
+        }
+      },
+      {
         network: 'abstractTestnet',
         chainId: 11124,
         urls: {
-          apiURL: 'https://api-testnet.abscan.org/api',
+          apiURL: 'https://api-sepolia.abscan.org/api',
           browserURL: 'https://sepolia.abscan.org'
         }
       }
     ]
   },
-  */
+
   sourcify: {
     enabled: true
   }
