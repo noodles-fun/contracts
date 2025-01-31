@@ -12,9 +12,9 @@
 
 |Contract|Description|Mainnet address (Proxy)|Testnet address (Proxy)|
 |--------|--------------------|---------------|---------------|
-| **VisibilityCredits**  | Implements a bonding curve where token price = A × supply² + B × supply + basePrice. Price grows as supply grows | Coming Soon      | [0x00fbeC67F05fc30898670BB7510863216E4d2C95](https://explorer.testnet.abs.xyz/address/0x00fbeC67F05fc30898670BB7510863216E4d2C95)        |
-| **VisibilityServices** | Lets creators accept tokens for off-chain promotion services.                                                   | Coming Soon      | [0xe9f915bE546BE513c880E39E515D52002ced7c7b](https://explorer.testnet.abs.xyz/address/0xe9f915bE546BE513c880E39E515D52002ced7c7b)        |
-| **PointsSBT**  | Soulbound tokens to reward early users | Coming Soon      | [0x1CCdaE8E383BeBea43D23DA0cbf1fC421fa485d0](https://explorer.testnet.abs.xyz/address/0x1CCdaE8E383BeBea43D23DA0cbf1fC421fa485d0)        |
+| **VisibilityCredits**  | Implements a bonding curve where token price = A × supply² + B × supply + basePrice. Price grows as supply grows | Coming Soon      | [0x25aaca9fD684CD710BB87bd8f87A2a9F20e5a269](https://sepolia.abscan.org/address/0x25aaca9fd684cd710bb87bd8f87a2a9f20e5a269)        |
+| **VisibilityServices** | Lets creators accept tokens for off-chain promotion services.                                                   | Coming Soon      | [0x446aC2A937b7ef299402D97a9132CD2ce7Ff73b1](https://sepolia.abscan.org/address/0x446ac2a937b7ef299402d97a9132cd2ce7ff73b1)        |
+| **PointsSBT**  | Soulbound tokens to reward early users | Coming Soon      | [0x53D523F98dFd0B4b8ADd9306D345d6e709AD6b18](https://sepolia.abscan.org/address/0x53d523f98dfd0b4b8add9306d345d6e709ad6b18)        |
 
 ---
 
