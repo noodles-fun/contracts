@@ -16,7 +16,8 @@ describe('PointsSBT', function () {
   let user1: Wallet
   let user2: Wallet
 
-  let uri = 'ipfs://bafkreihawucpcz2gy2wp5mac3yqftl7et4y3pxqroees4mamlsflzisv7e'
+  let uri =
+    'https://orange-elegant-swallow-161.mypinata.cloud/ipfs/bafkreigqcfvsozxhke7tp2f37xyqdn6hmvkz5x6ho5ybwwrsxm6kca5kny'
 
   async function deployFixture() {
     ;[deployer, owner, user1, user2] = getWallets()

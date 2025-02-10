@@ -36,6 +36,7 @@ const config: HardhatUserConfig = {
       ethNetwork: 'sepolia',
       zksync: true,
       verifyURL: 'https://api-sepolia.abscan.org/api'
+      // verifyURL: 'https://api-explorer-verify.testnet.abs.xyz/contract_verification'
     },
     localhost: {
       // chainId: 11124,
@@ -50,6 +51,7 @@ const config: HardhatUserConfig = {
 
   etherscan: {
     apiKey: {
+      abstract: process.env.EXPLORER_API_KEY as string,
       abstractTestnet: process.env.EXPLORER_API_KEY as string
     },
     customChains: [

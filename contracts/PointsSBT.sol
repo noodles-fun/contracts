@@ -44,7 +44,7 @@ contract PointsSBT is ERC721Upgradeable, OwnableUpgradeable {
 
         PointsSBTStorage storage $ = _getPointsSBTStorage();
         $
-            .uri = "ipfs://bafkreihawucpcz2gy2wp5mac3yqftl7et4y3pxqroees4mamlsflzisv7e";
+            .uri = "https://orange-elegant-swallow-161.mypinata.cloud/ipfs/bafkreigqcfvsozxhke7tp2f37xyqdn6hmvkz5x6ho5ybwwrsxm6kca5kny";
     }
 
     // Owner can mint only if the recipient has no token yet
