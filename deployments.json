@@ -18,7 +18,7 @@
       "proxy": "0x0DA6Bfd5d50edb31AF14C3A7820d28dB475Ec97D"
     },
     "VisibilityServices": {
-      "implementation": "0x9D7692bd8165105133d916082be020915E7Dc32F",
+      "implementation": "0xBb05c34eEb02Ea51D3b0a12130abfFC231D77422",
       "proxyAdmin": "0x138DAE1cf816a926Ac118FC7d99C8552C6Ca735d",
       "proxy": "0x89e74F963e506D6921FF33cB75b53b963D7218bE"
     }
@@ -42,7 +42,7 @@
       "proxy": "0x25aaca9fD684CD710BB87bd8f87A2a9F20e5a269"
     },
     "VisibilityServices": {
-      "implementation": "0xE11F34090E3280A81979ae1cCCcf98F262E48338",
+      "implementation": "0xfd544312B3D405461598b2D80810Fa7D497FD4dA",
       "proxyAdmin": "0xE4416dd979842A96A2688DD996069509A57a54a0",
       "proxy": "0x446aC2A937b7ef299402D97a9132CD2ce7Ff73b1"
     }

@@ -15,88 +15,74 @@ export default async function (hre: HardhatRuntimeEnvironment) {
   }
 
   const provider = getProvider()
-
   const wallet = new Wallet(process.env.DEPLOYER_PRIVATE_KEY)
   const deployer = new Deployer(hre, wallet)
-
   const chainId = (await getProvider().getNetwork()).chainId.toString()
 
   const pointsSBTContractProxyAddr = deployments[chainId].PointsSBT.proxy
+  const visibilityCreditsProxyAddr =
+    deployments[chainId].VisibilityCredits.proxy
+  const visibilityServicesProxyAddr =
+    deployments[chainId].VisibilityServices.proxy
 
+  /*
   const PointsSBT = await deployer.loadArtifact('PointsSBT')
-
   console.log('Upgrading PointsSBT...', {
     pointsSBTContractProxyAddr,
     chainId
   })
-
   const psUpgrade = await hre.zkUpgrades.upgradeProxy(
     deployer.zkWallet,
     pointsSBTContractProxyAddr,
     PointsSBT
   )
-
   await psUpgrade.waitForDeployment()
 
-  const psImplementationAddress = await getImplementationAddress(
-    provider,
-    pointsSBTContractProxyAddr
-  )
-
-  console.log('PointsSBT upgraded to ', psImplementationAddress)
-
-  const visibilityCreditsProxyAddr =
-    deployments[chainId].VisibilityCredits.proxy
   const VisibilityCredits = await deployer.loadArtifact('VisibilityCredits')
-
   console.log('Upgrading VisibilityCredits...', {
     visibilityCreditsProxyAddr,
     chainId
   })
-
   const vcUpgrade = await hre.zkUpgrades.upgradeProxy(
     deployer.zkWallet,
     visibilityCreditsProxyAddr,
     VisibilityCredits
   )
-
   await vcUpgrade.waitForDeployment()
-
-  const vcImplementationAddress = await getImplementationAddress(
-    provider,
-    visibilityCreditsProxyAddr
-  )
-
-  console.log('VisibilityCredits upgraded to ', vcImplementationAddress)
-
-  const visibilityServicesProxyAddr =
-    deployments[chainId].VisibilityServices.proxy
+*/
 
   const VisibilityService = await deployer.loadArtifact('VisibilityServices')
-
   console.log('Upgrading VisibilityServices...', {
     visibilityServicesProxyAddr,
     chainId
   })
-
   const vsUpgrade = await hre.zkUpgrades.upgradeProxy(
     deployer.zkWallet,
     visibilityServicesProxyAddr,
     VisibilityService
   )
-
   await vsUpgrade.waitForDeployment()
 
+  const psImplementationAddress = await getImplementationAddress(
+    provider,
+    pointsSBTContractProxyAddr
+  )
+  console.log('PointsSBT upgraded to ', psImplementationAddress)
   const vsImplementationAddress = await getImplementationAddress(
     provider,
     visibilityServicesProxyAddr
   )
-
   console.log('VisibilityServices upgraded to ', vsImplementationAddress)
-
-  console.log('Verifying implementations contracts...')
+  const vcImplementationAddress = await getImplementationAddress(
+    provider,
+    visibilityCreditsProxyAddr
+  )
+  console.log('VisibilityCredits upgraded to ', vcImplementationAddress)
 
   try {
+    console.log('Verifying implementations contracts...')
+
+    /*
     await verifyContract({
       address: psImplementationAddress
     })
@@ -104,7 +90,7 @@ export default async function (hre: HardhatRuntimeEnvironment) {
     await verifyContract({
       address: vcImplementationAddress
     })
-
+*/
     await verifyContract({
       address: vsImplementationAddress
     })
@@ -141,6 +127,7 @@ export default async function (hre: HardhatRuntimeEnvironment) {
   fs.writeFileSync('deployments.json', JSON.stringify(deployments, null, 2))
 
   console.log('Changing proxy admin owner...')
+  /*
   await hre.zkUpgrades.admin.transferProxyAdminOwnership(
     pointsSBTContractProxyAddr,
     process.env.ADMIN_ADDRESS,
@@ -151,6 +138,7 @@ export default async function (hre: HardhatRuntimeEnvironment) {
     process.env.ADMIN_ADDRESS,
     deployer.zkWallet
   )
+    */
   await hre.zkUpgrades.admin.transferProxyAdminOwnership(
     visibilityServicesProxyAddr,
     process.env.ADMIN_ADDRESS,

@@ -24,9 +24,11 @@ interface IVisibilityServices {
         uint256 creditsCostAmount; // Cost in credits for the service
         uint256 executionsNonce; // Counter for execution IDs
         mapping(uint256 => Execution) executions; // Mapping of executions by nonce
+        address originator; // Address that created the service
     }
 
     event ServiceCreated(
+        address indexed originator,
         uint256 indexed nonce,
         string serviceType,
         string visibilityId,
@@ -38,6 +40,15 @@ interface IVisibilityServices {
         uint256 indexed executionNonce,
         address indexed requester,
         string requestData
+    );
+    event ServiceExecutionInformation(
+        uint256 indexed serviceNonce,
+        uint256 indexed executionNonce,
+        address indexed user,
+        bool fromCreator,
+        bool fromRequester,
+        bool fromDisputeResolver,
+        string informationData
     );
     event ServiceExecutionCanceled(
         uint256 indexed serviceNonce,
@@ -69,6 +80,7 @@ interface IVisibilityServices {
     error DisabledService();
     error InvalidAddress();
     error InvalidCreator();
+    error InvalidOriginator();
     error InvalidExecutionState();
     error UnauthorizedExecutionAction();
 
@@ -88,6 +100,12 @@ interface IVisibilityServices {
     function requestServiceExecution(
         uint256 serviceNonce,
         string calldata requestData
+    ) external;
+
+    function addInformationForServiceExecution(
+        uint256 serviceNonce,
+        uint256 executionNonce,
+        string calldata informationData
     ) external;
 
     function acceptServiceExecution(

@@ -68,7 +68,7 @@ contract VisibilityServices is
     }
 
     /**
-     * @notice Creates a new service. Can only be called by the creator linked to the visibility ID.
+     * @notice Creates a new service. Anyone can purpose a new service.
      *
      * @param serviceType The type of the service.
      * @param visibilityId The visibility ID associated with the service.
@@ -80,8 +80,6 @@ contract VisibilityServices is
         uint256 creditsCostAmount
     ) external {
         VisibilityServicesStorage storage $ = _getVisibilityServicesStorage();
-        (address creator, , ) = $.visibilityCredits.getVisibility(visibilityId);
-        if (creator != msg.sender) revert InvalidCreator();
 
         uint256 nonce = $.servicesNonce;
         $.services[nonce].enabled = true;
@@ -89,10 +87,12 @@ contract VisibilityServices is
         $.services[nonce].visibilityId = visibilityId;
         $.services[nonce].creditsCostAmount = creditsCostAmount;
         $.services[nonce].executionsNonce = 0;
+        $.services[nonce].originator = msg.sender;
 
         $.servicesNonce += 1;
 
         emit ServiceCreated(
+            msg.sender,
             nonce,
             serviceType,
             visibilityId,
@@ -101,7 +101,7 @@ contract VisibilityServices is
     }
 
     /**
-     * @notice Creates a new service and updates an existing service. Can only be called by the creator linked to the visibility ID.
+     * @notice Creates a new service and updates an existing service. Can only be called by the service originator.
      * The existing service is disabled. The new service is created with the same parameters as the existing service, except for the cost in credits.
      *
      * @param serviceNonce The ID of the existing service.
@@ -117,8 +117,8 @@ contract VisibilityServices is
         string memory serviceType = service.serviceType;
         string memory visibilityId = service.visibilityId;
 
-        (address creator, , ) = $.visibilityCredits.getVisibility(visibilityId);
-        if (creator != msg.sender) revert InvalidCreator();
+        address originator = service.originator;
+        if (originator != msg.sender) revert InvalidOriginator();
 
         uint256 nonce = $.servicesNonce;
         $.services[nonce].enabled = true;
@@ -126,10 +126,12 @@ contract VisibilityServices is
         $.services[nonce].visibilityId = visibilityId;
         $.services[nonce].creditsCostAmount = creditsCostAmount;
         $.services[nonce].executionsNonce = 0;
+        $.services[nonce].originator = msg.sender;
 
         $.servicesNonce += 1;
 
         emit ServiceCreated(
+            originator,
             nonce,
             serviceType,
             visibilityId,
@@ -141,7 +143,7 @@ contract VisibilityServices is
     }
 
     /**
-     * @notice Updates the status of an existing service. Can only be called by the creator linked to the visibility ID.
+     * @notice Updates the status of an existing service. Can only be called by the service originator.
      *
      * @param serviceNonce The ID of the service to update.
      * @param enabled The new status of the service (true for enabled, false for disabled).
@@ -150,10 +152,8 @@ contract VisibilityServices is
         VisibilityServicesStorage storage $ = _getVisibilityServicesStorage();
 
         Service storage service = $.services[serviceNonce];
-        string memory visibilityId = service.visibilityId;
 
-        (address creator, , ) = $.visibilityCredits.getVisibility(visibilityId);
-        if (creator != msg.sender) revert InvalidCreator();
+        if (service.originator != msg.sender) revert InvalidOriginator();
 
         service.enabled = enabled;
         emit ServiceUpdated(serviceNonce, enabled);
@@ -193,6 +193,47 @@ contract VisibilityServices is
             executionNonce,
             msg.sender,
             requestData
+        );
+    }
+
+    /**
+     * @notice Add information to agree about service execution details
+     *
+     * @param serviceNonce The ID of the service.
+     * @param executionNonce The ID of the execution
+     * @param informationData The data related to the information request.
+     */
+    function addInformationForServiceExecution(
+        uint256 serviceNonce,
+        uint256 executionNonce,
+        string calldata informationData
+    ) external {
+        VisibilityServicesStorage storage $ = _getVisibilityServicesStorage();
+
+        Service storage service = $.services[serviceNonce];
+        Execution storage execution = service.executions[executionNonce];
+
+        string memory visibilityId = service.visibilityId;
+        (address creator, , ) = $.visibilityCredits.getVisibility(visibilityId);
+
+        bool fromCreator = creator == msg.sender;
+        bool fromRequester = execution.requester == msg.sender;
+        bool fromDisputeResolver = hasRole(DISPUTE_RESOLVER_ROLE, msg.sender);
+
+        bool canAddInformation = fromCreator ||
+            fromRequester ||
+            fromDisputeResolver;
+
+        if (canAddInformation == false) revert UnauthorizedExecutionAction();
+
+        emit ServiceExecutionInformation(
+            serviceNonce,
+            executionNonce,
+            msg.sender,
+            fromCreator,
+            fromRequester,
+            fromDisputeResolver,
+            informationData
         );
     }
 

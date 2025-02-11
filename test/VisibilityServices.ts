@@ -166,30 +166,64 @@ describe('VisibilityServices', function () {
       expect(creditsCostAmount).to.equal(55)
     })
 
-    it('Should revert if non-creator tries to create a service', async function () {
+    it('Should allow anyone to create any service', async function () {
       await loadFixture(deployFixture)
 
-      await expect(
-        visibilityServices
-          .connect(user1)
-          .createService('x-post', visibilityId1, 10)
-      ).to.be.revertedWithCustomError(visibilityServices, 'InvalidCreator')
+      tx = await visibilityServices
+        .connect(user1)
+        .createService('test', visibilityId1, 10)
+
+      await tx.wait()
+
+      expect(tx)
+        .to.emit(visibilityServices, 'ServiceCreated')
+        .withArgs(user1, 2, 'x-post', visibilityId1, 10)
     })
 
-    it('Should revert if non-creator tries to update a service', async function () {
+    it('Should revert if non-originator tries to update a service', async function () {
       await loadFixture(deployFixture)
 
+      tx = await visibilityServices
+        .connect(user1)
+        .createService('test', visibilityId1, 10)
+
+      await tx.wait()
+
+      const serviceNonce = 1
+
+      tx = await visibilityServices
+        .connect(user1)
+        .updateService(serviceNonce, false)
+
+      await tx.wait()
+
       await expect(
-        visibilityServices.connect(user1).updateService(0, false)
-      ).to.be.revertedWithCustomError(visibilityServices, 'InvalidCreator')
+        visibilityServices.connect(user2).updateService(serviceNonce, false)
+      ).to.be.revertedWithCustomError(visibilityServices, 'InvalidOriginator')
     })
 
     it('Should revert if non-creator tries to create and update from a service', async function () {
       await loadFixture(deployFixture)
 
+      tx = await visibilityServices
+        .connect(user1)
+        .createService('test', visibilityId1, 10)
+
+      await tx.wait()
+
+      const serviceNonce = 1
+
+      tx = await visibilityServices
+        .connect(user1)
+        .updateService(serviceNonce, false)
+
+      await tx.wait()
+
       await expect(
-        visibilityServices.connect(user1).createAndUpdateFromService(0, 55)
-      ).to.be.revertedWithCustomError(visibilityServices, 'InvalidCreator')
+        visibilityServices
+          .connect(user2)
+          .createAndUpdateFromService(serviceNonce, 55)
+      ).to.be.revertedWithCustomError(visibilityServices, 'InvalidOriginator')
     })
 
     it('Should revert with invalid service nonce', async function () {
@@ -197,7 +231,7 @@ describe('VisibilityServices', function () {
 
       await expect(
         visibilityServices.connect(creator).updateService(1, false)
-      ).to.be.revertedWithCustomError(visibilityServices, 'InvalidCreator')
+      ).to.be.revertedWithCustomError(visibilityServices, 'InvalidOriginator')
     })
   })
 
@@ -252,6 +286,47 @@ describe('VisibilityServices', function () {
       ).to.be.revertedWithCustomError(
         visibilityCredits,
         'NotEnoughCreditsOwned'
+      )
+    })
+
+    it('Should allow creator, dispute resolver or requester to add information context', async function () {
+      await loadFixture(deploySEFFixture)
+      tx = await visibilityServices
+        .connect(user1)
+        .requestServiceExecution(0, 'Request Data')
+      await tx.wait()
+
+      tx = await visibilityServices
+        .connect(creator)
+        .addInformationForServiceExecution(0, 0, 'info Data1')
+      await tx.wait()
+      tx = await visibilityServices
+        .connect(disputeResolver)
+        .addInformationForServiceExecution(0, 0, 'info Data2')
+      await tx.wait()
+      tx = await visibilityServices
+        .connect(user1)
+        .addInformationForServiceExecution(0, 0, 'info Data3')
+
+      expect(tx)
+        .to.emit(visibilityServices, 'ServiceExecutionInformation')
+        .withArgs(0, 0, user1.address, false, true, false, 'info Data3')
+    })
+
+    it('Should revert if adding information request is not executed by creator, dispute resolver nor requester', async function () {
+      await loadFixture(deploySEFFixture)
+      tx = await visibilityServices
+        .connect(user1)
+        .requestServiceExecution(0, 'Request Data')
+      await tx.wait()
+
+      await expect(
+        visibilityServices
+          .connect(user2)
+          .addInformationForServiceExecution(0, 0, 'info Data')
+      ).to.be.revertedWithCustomError(
+        visibilityServices,
+        'UnauthorizedExecutionAction'
       )
     })
 
