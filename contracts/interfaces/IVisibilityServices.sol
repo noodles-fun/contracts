@@ -38,6 +38,14 @@ interface IVisibilityServices {
         uint256 weiCostAmount; // Cost in WEI for the service
     }
 
+    event BuyBack(
+        uint256 serviceNonce,
+        uint256 executionNonce,
+        string visibilityId,
+        uint256 totalWeiCost,
+        uint256 creditsAmount
+    );
+
     event ServiceCreated(
         address indexed originator,
         uint256 indexed nonce,
@@ -110,7 +118,10 @@ interface IVisibilityServices {
     error InvalidExecutionState();
     error InvalidOriginator();
     error InvalidPaymentType();
+    error InvalidProtocolTreasury();
+    error InvalidWeiCost();
     error InsufficientValue();
+    error QuoteSlippage();
     error UnauthorizedExecutionAction();
 
     function createService(
@@ -161,6 +172,12 @@ interface IVisibilityServices {
         uint256 executionNonce
     ) external;
 
+    function validateServiceExecutionFromEthPayment(
+        uint256 serviceNonce,
+        uint256 executionNonce,
+        uint256 expectedCreditsAmount
+    ) external;
+
     function disputeServiceExecution(
         uint256 serviceNonce,
         uint256 executionNonce,
@@ -174,6 +191,26 @@ interface IVisibilityServices {
         string calldata resolveData
     ) external;
 
+    function resolveServiceExecutionFromEthPayment(
+        uint256 serviceNonce,
+        uint256 executionNonce,
+        bool refund,
+        string calldata resolveData,
+        uint256 expectedCreditsAmount
+    ) external;
+
+    function buyBackCreditsQuote(
+        uint256 serviceNonce
+    )
+        external
+        view
+        returns (
+            uint256 protocolAmount,
+            uint256 creatorAmount,
+            uint256 creditsAmount,
+            uint256 totalCost
+        );
+
     function getService(
         uint256 serviceNonce
     )
@@ -184,6 +221,20 @@ interface IVisibilityServices {
             string memory serviceType,
             string memory visibilityId,
             uint256 creditsCostAmount,
+            uint256 executionsNonce
+        );
+
+    function getServiceWithEthPayment(
+        uint256 serviceNonce
+    )
+        external
+        view
+        returns (
+            bool enabled,
+            string memory serviceType,
+            string memory visibilityId,
+            uint256 buyBackCreditsShare,
+            uint256 weiCostAmount,
             uint256 executionsNonce
         );
 
