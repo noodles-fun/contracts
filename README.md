@@ -58,7 +58,7 @@ Ensure you setup your `.env` file correctly. You can initialize it from the prov
 
 ## Tests
 
-### Fork Abstract Testnet
+### Run local node
 
 1. Install Rust (if not already installed):
 
@@ -81,14 +81,20 @@ Ensure you setup your `.env` file correctly. You can initialize it from the prov
    sudo apt remove gcc-9 && sudo apt install clang
    ```
 
-3. Run forked node:
+3. Run local node:
+
+   ```bash
+   ./target/release/anvil-zksync
+   ```
+
+4. Or run forked node:
 
    ```bash
    ./target/release/anvil-zksync fork --fork-url https://api.testnet.abs.xyz --fork-block-number 3558125
    ```
 
-4. In another terminal, run tests:
+5. In another terminal, run tests:
 
    ```bash
-   npm run test-fork-localhost
+   npm run test-localhost
    ```

@@ -2,33 +2,21 @@
 pragma solidity ^0.8.20;
 
 import "@openzeppelin/contracts-upgradeable/access/extensions/AccessControlDefaultAdminRulesUpgradeable.sol";
-import "./interfaces/IVisibilityCredits.sol";
-import "./interfaces/IVisibilityServices.sol";
-import "@openzeppelin/contracts/utils/Address.sol";
+import "../interfaces/IVisibilityCredits.sol";
+import "./IVisibilityServicesV1.sol";
 
 /**
  * @title VisibilityServices
  * @notice Allows users to spend creator credits (from IVisibilityCredits), for ad purposes.
- *
- * UPDATE V2:
- * - VisibilityServices can now be paid with ETH.
- * - Unlike VisibilityCredits, where 100% of the payment goes to the creator, ETH payments are distributed as follows:
- * - A portion, set first by the service creator and then by the visibility creator, is used to buy back credits from the visibility creator.
- * - A fixed percentage goes to the protocol.
- * - The remaining funds go to the visibility creator.
  */
-contract VisibilityServices is
+contract VisibilityServicesV1 is
     AccessControlDefaultAdminRulesUpgradeable,
-    IVisibilityServices
+    IVisibilityServicesV1
 {
     uint256 public constant AUTO_VALIDATION_DELAY = 5 days;
 
     bytes32 public constant DISPUTE_RESOLVER_ROLE =
         keccak256("DISPUTE_RESOLVER_ROLE");
-
-    /// @notice Fee percentages in ppm (parts per million).
-    uint32 public constant FEE_DENOMINATOR = 1_000_000; // Using parts per million (ppm)
-    uint16 public constant PROTOCOL_FEE = 20_000; // 2% base fee (does not include protocol fee on buy back)
 
     /// @custom:storage-location erc7201:noodles.VisibilityServices
     struct VisibilityServicesStorage {
@@ -80,11 +68,11 @@ contract VisibilityServices is
     }
 
     /**
-     * @notice Creates a new service with credits cost payment. Anyone can purpose a new service.
+     * @notice Creates a new service. Anyone can purpose a new service.
      *
      * @param serviceType The type of the service.
      * @param visibilityId The visibility ID associated with the service.
-     * @param creditsCostAmount The cost in credits for the service. Can be 0 (free).
+     * @param creditsCostAmount The cost in credits for the service.
      */
     function createService(
         string memory serviceType,
@@ -101,10 +89,6 @@ contract VisibilityServices is
         $.services[nonce].executionsNonce = 0;
         $.services[nonce].originator = msg.sender;
 
-        // $.services[nonce].paymentType = PaymentType.VISIBILITY_CREDITS;
-        // $.services[nonce].buyBackCreditsShare = 0;
-        // $.services[nonce].weiCostAmount = weiCostAmount;
-
         $.servicesNonce += 1;
 
         emit ServiceCreated(
@@ -117,66 +101,21 @@ contract VisibilityServices is
     }
 
     /**
-     * @notice Creates a new service with ETH payment. Anyone can purpose a new service.
-     *
-     * @param serviceType The type of the service.
-     * @param visibilityId The visibility ID associated with the service.
-     * @param buyBackCreditsShare The share in ppm of the ETH payment used to buy back credits.
-     * @param weiCostAmount The cost in WEI for the service. Can be 0 (free).
-     */
-    function createServiceWithETH(
-        string memory serviceType,
-        string memory visibilityId,
-        uint256 buyBackCreditsShare,
-        uint256 weiCostAmount
-    ) external {
-        if (buyBackCreditsShare > FEE_DENOMINATOR - PROTOCOL_FEE)
-            revert InvalidBuyBackCreditsShare();
-
-        VisibilityServicesStorage storage $ = _getVisibilityServicesStorage();
-
-        uint256 nonce = $.servicesNonce;
-        $.services[nonce].enabled = true;
-        $.services[nonce].serviceType = serviceType;
-        $.services[nonce].visibilityId = visibilityId;
-        // $.services[nonce].creditsCostAmount = 0;
-        $.services[nonce].executionsNonce = 0;
-        $.services[nonce].originator = msg.sender;
-
-        $.services[nonce].paymentType = PaymentType.ETH;
-        $.services[nonce].buyBackCreditsShare = buyBackCreditsShare;
-        $.services[nonce].weiCostAmount = weiCostAmount;
-
-        $.servicesNonce += 1;
-
-        emit ServiceWithETHCreated(
-            msg.sender,
-            nonce,
-            serviceType,
-            visibilityId,
-            buyBackCreditsShare,
-            weiCostAmount
-        );
-    }
-
-    /**
      * @notice Creates a new service and updates an existing service. Can only be called by the service originator.
      * The existing service is disabled. The new service is created with the same parameters as the existing service, except for the cost in credits.
      *
      * @param serviceNonce The ID of the existing service.
-     * @param costAmount The cost (in credits or WEI) for the new service.
+     * @param creditsCostAmount The cost in credits for the new service.
      */
     function createAndUpdateFromService(
         uint256 serviceNonce,
-        uint256 costAmount
+        uint256 creditsCostAmount
     ) external {
         VisibilityServicesStorage storage $ = _getVisibilityServicesStorage();
 
         Service storage service = $.services[serviceNonce];
         string memory serviceType = service.serviceType;
         string memory visibilityId = service.visibilityId;
-        PaymentType paymentType = service.paymentType;
-        uint256 buyBackCreditsShare = service.buyBackCreditsShare;
 
         address originator = service.originator;
         if (originator != msg.sender) revert InvalidOriginator();
@@ -185,41 +124,19 @@ contract VisibilityServices is
         $.services[nonce].enabled = true;
         $.services[nonce].serviceType = serviceType;
         $.services[nonce].visibilityId = visibilityId;
-        $.services[nonce].creditsCostAmount = paymentType ==
-            PaymentType.VISIBILITY_CREDITS
-            ? costAmount
-            : 0;
+        $.services[nonce].creditsCostAmount = creditsCostAmount;
         $.services[nonce].executionsNonce = 0;
         $.services[nonce].originator = msg.sender;
 
-        $.services[nonce].paymentType = paymentType;
-        $.services[nonce].buyBackCreditsShare = buyBackCreditsShare;
-        $.services[nonce].weiCostAmount = paymentType == PaymentType.ETH
-            ? costAmount
-            : 0;
-
         $.servicesNonce += 1;
 
-        if (paymentType == PaymentType.VISIBILITY_CREDITS) {
-            emit ServiceCreated(
-                msg.sender,
-                nonce,
-                serviceType,
-                visibilityId,
-                costAmount
-            );
-        } else if (paymentType == PaymentType.ETH) {
-            emit ServiceWithETHCreated(
-                msg.sender,
-                nonce,
-                serviceType,
-                visibilityId,
-                buyBackCreditsShare,
-                costAmount
-            );
-        } else {
-            revert InvalidPaymentType();
-        }
+        emit ServiceCreated(
+            originator,
+            nonce,
+            serviceType,
+            visibilityId,
+            creditsCostAmount
+        );
 
         service.enabled = false;
         emit ServiceUpdated(serviceNonce, false);
@@ -243,36 +160,6 @@ contract VisibilityServices is
     }
 
     /**
-     * @notice Updates the buy back credits share of an existing service. Can only be called by the visibility creator.
-     *
-     * @param serviceNonce The ID of the service to update.
-     * @param buyBackCreditsShare The new share in ppm of the ETH payment used to buy back credits.
-     */
-    function updateBuyBackCreditsShare(
-        uint256 serviceNonce,
-        uint256 buyBackCreditsShare
-    ) external {
-        if (buyBackCreditsShare > FEE_DENOMINATOR - PROTOCOL_FEE)
-            revert InvalidBuyBackCreditsShare();
-
-        VisibilityServicesStorage storage $ = _getVisibilityServicesStorage();
-
-        Service storage service = $.services[serviceNonce];
-
-        PaymentType paymentType = service.paymentType;
-        if (paymentType != PaymentType.ETH) revert InvalidPaymentType();
-
-        string memory visibilityId = service.visibilityId;
-        (address creator, , ) = $.visibilityCredits.getVisibility(visibilityId);
-
-        if (creator != msg.sender) revert InvalidCreator();
-
-        service.buyBackCreditsShare = buyBackCreditsShare;
-
-        emit ServiceBuyBackUpdated(serviceNonce, buyBackCreditsShare);
-    }
-
-    /**
      * @notice Requests execution of a service. Transfers credits from the requester to the contract.
      *
      * @param serviceNonce The ID of the service.
@@ -281,14 +168,11 @@ contract VisibilityServices is
     function requestServiceExecution(
         uint256 serviceNonce,
         string calldata requestData
-    ) external payable {
+    ) external {
         VisibilityServicesStorage storage $ = _getVisibilityServicesStorage();
 
         Service storage service = $.services[serviceNonce];
-
         if (!service.enabled) revert DisabledService();
-
-        PaymentType paymentType = service.paymentType;
 
         uint256 executionNonce = service.executionsNonce;
         service.executions[executionNonce].state = ExecutionState.REQUESTED;
@@ -297,21 +181,12 @@ contract VisibilityServices is
             .timestamp;
 
         service.executionsNonce += 1;
-
-        if (paymentType == PaymentType.VISIBILITY_CREDITS) {
-            /// @dev it reverts if not enough credits
-            $.visibilityCredits.transferCredits(
-                service.visibilityId,
-                msg.sender,
-                address(this),
-                service.creditsCostAmount
-            );
-        } else if (paymentType == PaymentType.ETH) {
-            uint256 weiCostAmount = service.weiCostAmount;
-            if (msg.value < weiCostAmount) revert InsufficientValue();
-        } else {
-            revert InvalidPaymentType();
-        }
+        $.visibilityCredits.transferCredits(
+            service.visibilityId,
+            msg.sender,
+            address(this),
+            service.creditsCostAmount
+        ); // revert if not enough credits
 
         emit ServiceExecutionRequested(
             serviceNonce,
@@ -618,6 +493,4 @@ contract VisibilityServices is
         VisibilityServicesStorage storage $ = _getVisibilityServicesStorage();
         return address($.visibilityCredits);
     }
-
-    // function _proceedPayment() private {}
 }

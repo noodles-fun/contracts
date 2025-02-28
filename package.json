@@ -4,7 +4,7 @@
     "compile": "npx hardhat clean && npx hardhat compile",
     "deploy": "npm run compile && npx hardhat deploy-zksync --script deploy.ts --network",
     "test": "rm -f .upgradable/ZKsync-era-test-node.json && npm run compile && npx hardhat test",
-    "test-fork-localhost": "npm run compile && npx hardhat test --network localhost",
+    "test-localhost": "npm run compile && npx hardhat test --network localhost",
     "upgrade": "npm run compile && npx hardhat deploy-zksync --script upgrade.ts --network"
   },
   "devDependencies": {

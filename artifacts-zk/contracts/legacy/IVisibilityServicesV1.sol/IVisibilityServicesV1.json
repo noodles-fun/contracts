@@ -1,7 +1,7 @@
 {
   "_format": "hh-zksolc-artifact-1",
-  "contractName": "IVisibilityServices",
-  "sourceName": "contracts/interfaces/IVisibilityServices.sol",
+  "contractName": "IVisibilityServicesV1",
+  "sourceName": "contracts/legacy/IVisibilityServicesV1.sol",
   "abi": [
     {
       "inputs": [],
@@ -10,17 +10,7 @@
     },
     {
       "inputs": [],
-      "name": "InsufficientValue",
-      "type": "error"
-    },
-    {
-      "inputs": [],
       "name": "InvalidAddress",
-      "type": "error"
-    },
-    {
-      "inputs": [],
-      "name": "InvalidBuyBackCreditsShare",
       "type": "error"
     },
     {
@@ -40,32 +30,8 @@
     },
     {
       "inputs": [],
-      "name": "InvalidPaymentType",
-      "type": "error"
-    },
-    {
-      "inputs": [],
       "name": "UnauthorizedExecutionAction",
       "type": "error"
-    },
-    {
-      "anonymous": false,
-      "inputs": [
-        {
-          "indexed": true,
-          "internalType": "uint256",
-          "name": "nonce",
-          "type": "uint256"
-        },
-        {
-          "indexed": false,
-          "internalType": "uint256",
-          "name": "buyBackCreditsShare",
-          "type": "uint256"
-        }
-      ],
-      "name": "ServiceBuyBackUpdated",
-      "type": "event"
     },
     {
       "anonymous": false,
@@ -335,49 +301,6 @@
       "type": "event"
     },
     {
-      "anonymous": false,
-      "inputs": [
-        {
-          "indexed": true,
-          "internalType": "address",
-          "name": "originator",
-          "type": "address"
-        },
-        {
-          "indexed": true,
-          "internalType": "uint256",
-          "name": "nonce",
-          "type": "uint256"
-        },
-        {
-          "indexed": false,
-          "internalType": "string",
-          "name": "serviceType",
-          "type": "string"
-        },
-        {
-          "indexed": false,
-          "internalType": "string",
-          "name": "visibilityId",
-          "type": "string"
-        },
-        {
-          "indexed": false,
-          "internalType": "uint256",
-          "name": "buyBackCreditsShare",
-          "type": "uint256"
-        },
-        {
-          "indexed": false,
-          "internalType": "uint256",
-          "name": "weiCostAmount",
-          "type": "uint256"
-        }
-      ],
-      "name": "ServiceWithETHCreated",
-      "type": "event"
-    },
-    {
       "inputs": [
         {
           "internalType": "uint256",
@@ -455,7 +378,7 @@
         },
         {
           "internalType": "uint256",
-          "name": "costAmount",
+          "name": "creditsCostAmount",
           "type": "uint256"
         }
       ],
@@ -483,34 +406,6 @@
         }
       ],
       "name": "createService",
-      "outputs": [],
-      "stateMutability": "nonpayable",
-      "type": "function"
-    },
-    {
-      "inputs": [
-        {
-          "internalType": "string",
-          "name": "serviceType",
-          "type": "string"
-        },
-        {
-          "internalType": "string",
-          "name": "visibilityId",
-          "type": "string"
-        },
-        {
-          "internalType": "uint256",
-          "name": "buyBackCreditsShare",
-          "type": "uint256"
-        },
-        {
-          "internalType": "uint256",
-          "name": "weiCostAmount",
-          "type": "uint256"
-        }
-      ],
-      "name": "createServiceWithETH",
       "outputs": [],
       "stateMutability": "nonpayable",
       "type": "function"
@@ -593,7 +488,7 @@
       "name": "getServiceExecution",
       "outputs": [
         {
-          "internalType": "enum IVisibilityServices.ExecutionState",
+          "internalType": "enum IVisibilityServicesV1.ExecutionState",
           "name": "state",
           "type": "uint8"
         },
@@ -639,7 +534,7 @@
       ],
       "name": "requestServiceExecution",
       "outputs": [],
-      "stateMutability": "payable",
+      "stateMutability": "nonpayable",
       "type": "function"
     },
     {

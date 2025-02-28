@@ -1,13 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
 
-interface IVisibilityServices {
-    enum PaymentType {
-        VISIBILITY_CREDITS, // Legacy => 0 (default)
-        ETH
-        // ERC20
-    }
-
+interface IVisibilityServicesV1 {
     enum ExecutionState {
         UNINITIALIZED,
         REQUESTED,
@@ -31,11 +25,6 @@ interface IVisibilityServices {
         uint256 executionsNonce; // Counter for execution IDs
         mapping(uint256 => Execution) executions; // Mapping of executions by nonce
         address originator; // Address that created the service
-        //
-        /// @dev Added to support ETH payment
-        PaymentType paymentType; // Payment type for the service
-        uint256 buyBackCreditsShare; // How much of the ETH payment is used to buy back credits
-        uint256 weiCostAmount; // Cost in WEI for the service
     }
 
     event ServiceCreated(
@@ -46,21 +35,6 @@ interface IVisibilityServices {
         uint256 creditsCostAmount
     );
     event ServiceUpdated(uint256 indexed nonce, bool enabled);
-
-    event ServiceBuyBackUpdated(
-        uint256 indexed nonce,
-        uint256 buyBackCreditsShare
-    );
-
-    event ServiceWithETHCreated(
-        address indexed originator,
-        uint256 indexed nonce,
-        string serviceType,
-        string visibilityId,
-        uint256 buyBackCreditsShare,
-        uint256 weiCostAmount
-    );
-
     event ServiceExecutionRequested(
         uint256 indexed serviceNonce,
         uint256 indexed executionNonce,
@@ -105,12 +79,9 @@ interface IVisibilityServices {
 
     error DisabledService();
     error InvalidAddress();
-    error InvalidBuyBackCreditsShare();
     error InvalidCreator();
-    error InvalidExecutionState();
     error InvalidOriginator();
-    error InvalidPaymentType();
-    error InsufficientValue();
+    error InvalidExecutionState();
     error UnauthorizedExecutionAction();
 
     function createService(
@@ -119,16 +90,9 @@ interface IVisibilityServices {
         uint256 creditsCostAmount
     ) external;
 
-    function createServiceWithETH(
-        string memory serviceType,
-        string memory visibilityId,
-        uint256 buyBackCreditsShare,
-        uint256 weiCostAmount
-    ) external;
-
     function createAndUpdateFromService(
         uint256 serviceNonce,
-        uint256 costAmount
+        uint256 creditsCostAmount
     ) external;
 
     function updateService(uint256 serviceNonce, bool enabled) external;
@@ -136,7 +100,7 @@ interface IVisibilityServices {
     function requestServiceExecution(
         uint256 serviceNonce,
         string calldata requestData
-    ) external payable;
+    ) external;
 
     function addInformationForServiceExecution(
         uint256 serviceNonce,
