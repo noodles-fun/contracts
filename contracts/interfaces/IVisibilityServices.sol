@@ -5,7 +5,7 @@ interface IVisibilityServices {
     enum PaymentType {
         VISIBILITY_CREDITS, // Legacy => 0 (default)
         ETH
-        // ERC20
+        // ERC20 => further implementation
     }
 
     enum ExecutionState {
@@ -20,14 +20,14 @@ interface IVisibilityServices {
     struct Execution {
         ExecutionState state; // Current state of the execution
         address requester; // Address that requested the service execution
-        uint256 lastUpdateTimestamp;
+        uint256 lastUpdateTimestamp; // Timestamp of the last state update
     }
 
     struct Service {
         bool enabled; // Indicates if the service is active, if it can be requested
         string serviceType; // Service type identifier (e.g., "x-post" for post publication)
         string visibilityId; // Visibility identifier (e.g., "x-807982663000674305" for specific accounts)
-        uint256 creditsCostAmount; // Cost in credits for the service
+        uint256 creditsCostAmount; // Cost in credits for the service, if paymentType is VISIBILITY_CREDITS
         uint256 executionsNonce; // Counter for execution IDs
         mapping(uint256 => Execution) executions; // Mapping of executions by nonce
         address originator; // Address that created the service
@@ -35,15 +35,19 @@ interface IVisibilityServices {
         /// @dev Added to support ETH payment
         PaymentType paymentType; // Payment type for the service
         uint256 buyBackCreditsShare; // How much of the ETH payment is used to buy back credits
-        uint256 weiCostAmount; // Cost in WEI for the service
+        uint256 weiCostAmount; // Cost in WEI for the service, if paymentType is ETH
     }
 
     event BuyBack(
-        uint256 serviceNonce,
-        uint256 executionNonce,
         string visibilityId,
         uint256 totalWeiCost,
         uint256 creditsAmount
+    );
+
+    event BuyBackPoolUpdated(
+        string visibilityId,
+        bool isBuyBack,
+        uint256 weiAmount
     );
 
     event ServiceCreated(
@@ -52,12 +56,6 @@ interface IVisibilityServices {
         string serviceType,
         string visibilityId,
         uint256 creditsCostAmount
-    );
-    event ServiceUpdated(uint256 indexed nonce, bool enabled);
-
-    event ServiceBuyBackUpdated(
-        uint256 indexed nonce,
-        uint256 buyBackCreditsShare
     );
 
     event ServiceWithETHCreated(
@@ -69,12 +67,20 @@ interface IVisibilityServices {
         uint256 weiCostAmount
     );
 
+    event ServiceUpdated(uint256 indexed nonce, bool enabled);
+
+    event ServiceBuyBackUpdated(
+        uint256 indexed nonce,
+        uint256 buyBackCreditsShare
+    );
+
     event ServiceExecutionRequested(
         uint256 indexed serviceNonce,
         uint256 indexed executionNonce,
         address indexed requester,
         string requestData
     );
+
     event ServiceExecutionInformation(
         uint256 indexed serviceNonce,
         uint256 indexed executionNonce,
@@ -84,26 +90,31 @@ interface IVisibilityServices {
         bool fromDisputeResolver,
         string informationData
     );
+
     event ServiceExecutionCanceled(
         uint256 indexed serviceNonce,
         uint256 indexed executionNonce,
         address indexed from,
         string cancelData
     );
+
     event ServiceExecutionAccepted(
         uint256 indexed serviceNonce,
         uint256 indexed executionNonce,
         string responseData
     );
+
     event ServiceExecutionValidated(
         uint256 indexed serviceNonce,
         uint256 indexed executionNonce
     );
+
     event ServiceExecutionDisputed(
         uint256 indexed serviceNonce,
         uint256 indexed executionNonce,
         string disputeData
     );
+
     event ServiceExecutionResolved(
         uint256 indexed serviceNonce,
         uint256 indexed executionNonce,
@@ -119,9 +130,7 @@ interface IVisibilityServices {
     error InvalidOriginator();
     error InvalidPaymentType();
     error InvalidProtocolTreasury();
-    error InvalidWeiCost();
     error InsufficientValue();
-    error QuoteSlippage();
     error UnauthorizedExecutionAction();
 
     function createService(
@@ -172,12 +181,6 @@ interface IVisibilityServices {
         uint256 executionNonce
     ) external;
 
-    function validateServiceExecutionFromEthPayment(
-        uint256 serviceNonce,
-        uint256 executionNonce,
-        uint256 expectedCreditsAmount
-    ) external;
-
     function disputeServiceExecution(
         uint256 serviceNonce,
         uint256 executionNonce,
@@ -190,26 +193,6 @@ interface IVisibilityServices {
         bool refund,
         string calldata resolveData
     ) external;
-
-    function resolveServiceExecutionFromEthPayment(
-        uint256 serviceNonce,
-        uint256 executionNonce,
-        bool refund,
-        string calldata resolveData,
-        uint256 expectedCreditsAmount
-    ) external;
-
-    function buyBackCreditsQuote(
-        uint256 serviceNonce
-    )
-        external
-        view
-        returns (
-            uint256 protocolAmount,
-            uint256 creatorAmount,
-            uint256 creditsAmount,
-            uint256 totalCost
-        );
 
     function getService(
         uint256 serviceNonce
@@ -251,4 +234,8 @@ interface IVisibilityServices {
         );
 
     function getVisibilityCreditsContract() external view returns (address);
+
+    function getVisibilityBuyBackBalance(
+        string calldata visibilityId
+    ) external view returns (uint256);
 }

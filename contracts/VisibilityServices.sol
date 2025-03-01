@@ -12,11 +12,13 @@ import "@openzeppelin/contracts/utils/Address.sol";
  *
  * UPDATE V2:
  * - VisibilityServices can now be paid with ETH.
- * - Unlike VisibilityCredits, where 100% of the payment goes to the creator, ETH payments are distributed as follows:
- * - A portion, set first by the service creator and then by the visibility creator, is used to buy back credits from the visibility creator.
- *   As the smart contract "buys" credits and won't use it later it can be consired as "burning" credits.
- * - A fixed percentage goes to the protocol.
- * - The remaining funds go to the visibility creator.
+ *   When `paymentType` is Visibility Credits, 100% of the payment goes to the creator
+ *   When `paymentType` is ETH, payments are distributed as follows:
+ *   1. A portion, set initially by the service originator and then by the visibility creator, goes to a "buy back pool".
+ *     Once validated, the creator from the visibility linked to the service can use it to buy back visibility credits.
+ *     As the smart contract "buys" credits and won't use it later, it can be considered as "burning" credits.
+ *   2. A fixed percentage goes to the protocol.
+ *   3. The remaining funds go to the visibility creator.
  */
 contract VisibilityServices is
     AccessControlDefaultAdminRulesUpgradeable,
@@ -31,15 +33,12 @@ contract VisibilityServices is
     uint32 public constant FEE_DENOMINATOR = 1_000_000; // Using parts per million (ppm)
     uint32 public constant PROTOCOL_FEE = 20_000; // 2% base fee (does not include protocol fee on buy back)
 
-    /// @notice To compute how much credits can be bought with a given amount of ETH, we need a maximum number of credits.
-    uint32 public constant MAX_NB_CREDITS = 50_000_000; // arbitrary limit, should be enough for most use cases, and avoid too much loops to compute quote ({creditsQuoteFromWeiAmount})
-    uint160 public constant MAX_WEI_COST = 658_000 * 1e18; // Minimum price for 50_000_000 credits is ≈ 656 283 ETH with current values in {VisibilityCredits}
-
     /// @custom:storage-location erc7201:noodles.VisibilityServices
     struct VisibilityServicesStorage {
         IVisibilityCredits visibilityCredits;
         uint256 servicesNonce; // Counter for service IDs
         mapping(uint256 => Service) services; // Mapping of services by nonce
+        mapping(string visibilityId => uint256) buyBackBalances; // added to support shares buy back
     }
 
     // keccak256(abi.encode(uint256(keccak256("noodles.VisibilityServices")) - 1)) & ~bytes32(uint256(0xff))
@@ -86,6 +85,7 @@ contract VisibilityServices is
 
     /**
      * @notice Creates a new service with credits cost payment. Anyone can purpose a new service.
+     * @dev `paymentType = VISIBILITY_CREDITS`
      *
      * @param serviceType The type of the service.
      * @param visibilityId The visibility ID associated with the service.
@@ -123,10 +123,11 @@ contract VisibilityServices is
 
     /**
      * @notice Creates a new service with ETH payment. Anyone can purpose a new service.
+     * @dev `paymentType = ETH`
      *
      * @param serviceType The type of the service.
      * @param visibilityId The visibility ID associated with the service.
-     * @param buyBackCreditsShare The share in ppm of the ETH payment used to buy back credits.
+     * @param buyBackCreditsShare The share in ppm of the ETH payment used to buy back credits. Should be less than 98 % (`FEE_DENOMINATOR - PROTOCOL_FEE = 980_000`).
      * @param weiCostAmount The cost in WEI for the service. Can be 0 (free).
      */
     function createServiceWithETH(
@@ -137,8 +138,6 @@ contract VisibilityServices is
     ) external {
         if (buyBackCreditsShare > FEE_DENOMINATOR - PROTOCOL_FEE)
             revert InvalidBuyBackCreditsShare();
-
-        if (weiCostAmount > MAX_WEI_COST) revert InvalidWeiCost();
 
         VisibilityServicesStorage storage $ = _getVisibilityServicesStorage();
 
@@ -168,7 +167,7 @@ contract VisibilityServices is
 
     /**
      * @notice Creates a new service and updates an existing service. Can only be called by the service originator.
-     * The existing service is disabled. The new service is created with the same parameters as the existing service, except for the cost in credits.
+     * The existing service is disabled. The new service is created with the same parameters as the existing service, except for the cost.
      *
      * @param serviceNonce The ID of the existing service.
      * @param costAmount The cost (in credits or WEI) for the new service.
@@ -184,9 +183,6 @@ contract VisibilityServices is
         string memory visibilityId = service.visibilityId;
         PaymentType paymentType = service.paymentType;
         uint256 buyBackCreditsShare = service.buyBackCreditsShare;
-
-        if (paymentType == PaymentType.ETH && costAmount > MAX_WEI_COST)
-            revert InvalidWeiCost();
 
         address originator = service.originator;
         if (originator != msg.sender) revert InvalidOriginator();
@@ -236,54 +232,7 @@ contract VisibilityServices is
     }
 
     /**
-     * @notice Updates the status of an existing service. Can only be called by the service originator.
-     *
-     * @param serviceNonce The ID of the service to update.
-     * @param enabled The new status of the service (true for enabled, false for disabled).
-     */
-    function updateService(uint256 serviceNonce, bool enabled) external {
-        VisibilityServicesStorage storage $ = _getVisibilityServicesStorage();
-
-        Service storage service = $.services[serviceNonce];
-
-        if (service.originator != msg.sender) revert InvalidOriginator();
-
-        service.enabled = enabled;
-        emit ServiceUpdated(serviceNonce, enabled);
-    }
-
-    /**
-     * @notice Updates the buy back credits share of an existing service. Can only be called by the visibility creator.
-     *
-     * @param serviceNonce The ID of the service to update.
-     * @param buyBackCreditsShare The new share in ppm of the ETH payment used to buy back credits.
-     */
-    function updateBuyBackCreditsShare(
-        uint256 serviceNonce,
-        uint256 buyBackCreditsShare
-    ) external {
-        if (buyBackCreditsShare > FEE_DENOMINATOR - PROTOCOL_FEE)
-            revert InvalidBuyBackCreditsShare();
-
-        VisibilityServicesStorage storage $ = _getVisibilityServicesStorage();
-
-        Service storage service = $.services[serviceNonce];
-
-        PaymentType paymentType = service.paymentType;
-        if (paymentType != PaymentType.ETH) revert InvalidPaymentType();
-
-        string memory visibilityId = service.visibilityId;
-        (address creator, , ) = $.visibilityCredits.getVisibility(visibilityId);
-
-        if (creator != msg.sender) revert InvalidCreator();
-
-        service.buyBackCreditsShare = buyBackCreditsShare;
-
-        emit ServiceBuyBackUpdated(serviceNonce, buyBackCreditsShare);
-    }
-
-    /**
-     * @notice Requests execution of a service. Transfers credits from the requester to the contract.
+     * @notice Requests execution of a service. Transfers payment (Visbility Credits or ETH) from the requester to the contract.
      *
      * @param serviceNonce The ID of the service.
      * @param requestData The data related to the request.
@@ -433,11 +382,10 @@ contract VisibilityServices is
         if (!(requester == msg.sender || creator == msg.sender))
             revert UnauthorizedExecutionAction();
 
+        /// @dev: We update state before refunding to prevent re-entrancy
         execution.state = ExecutionState.REFUNDED;
         execution.lastUpdateTimestamp = block.timestamp;
-
-        /// @dev: We update state before refunding to prevent re-entrancy
-        _proceedRefund(serviceNonce, executionNonce);
+        _proceedRefund(serviceNonce, requester);
 
         emit ServiceExecutionCanceled(
             serviceNonce,
@@ -449,7 +397,7 @@ contract VisibilityServices is
 
     /**
      * @notice Validates a service execution.
-     * Can only be called by the requester or by anyone after a delay for service with VISIBILITY_CREDITS payment.
+     * Can only be called by the requester or by anyone after a delay.
      *
      * @param serviceNonce The ID of the service.
      * @param executionNonce The ID of the execution.
@@ -471,70 +419,17 @@ contract VisibilityServices is
         if (execution.state != ExecutionState.ACCEPTED)
             revert InvalidExecutionState();
 
-        (address creator, , ) = $.visibilityCredits.getVisibility(
-            service.visibilityId
-        );
-        if (creator == address(0)) revert InvalidCreator();
-
         if (
             !(execution.requester == msg.sender ||
                 (AUTO_VALIDATION_DELAY + execution.lastUpdateTimestamp <
                     block.timestamp))
         ) revert UnauthorizedExecutionAction();
 
+        /// @dev: We update state before payment to prevent re-entrancy
         execution.state = ExecutionState.VALIDATED;
         execution.lastUpdateTimestamp = block.timestamp;
 
-        $.visibilityCredits.transferCredits(
-            service.visibilityId,
-            address(this),
-            creator,
-            service.creditsCostAmount
-        );
-
-        emit ServiceExecutionValidated(serviceNonce, executionNonce);
-    }
-
-    /**
-     * @notice Validates a service execution.
-     * Can only be called by the requester or by anyone after a delay for service with ETH payment.
-     *
-     * @param serviceNonce The ID of the service.
-     * @param executionNonce The ID of the execution.
-     * @param expectedCreditsAmount Required if refund is false. The expected amount of credits to buy back (to prevent frontrun/slippage, to get previously with {buyBackCreditsQuote} ).
-     */
-    function validateServiceExecutionFromEthPayment(
-        uint256 serviceNonce,
-        uint256 executionNonce,
-        uint256 expectedCreditsAmount
-    ) external {
-        VisibilityServicesStorage storage $ = _getVisibilityServicesStorage();
-
-        Service storage service = $.services[serviceNonce];
-        Execution storage execution = service.executions[executionNonce];
-
-        PaymentType paymentType = service.paymentType;
-
-        if (paymentType != PaymentType.ETH) revert InvalidPaymentType();
-
-        if (execution.state != ExecutionState.ACCEPTED)
-            revert InvalidExecutionState();
-
-        (address creator, , ) = $.visibilityCredits.getVisibility(
-            service.visibilityId
-        );
-        if (creator == address(0)) revert InvalidCreator();
-
-        if (
-            !(execution.requester == msg.sender ||
-                (AUTO_VALIDATION_DELAY + execution.lastUpdateTimestamp <
-                    block.timestamp))
-        ) revert UnauthorizedExecutionAction();
-
-        execution.state = ExecutionState.VALIDATED;
-        execution.lastUpdateTimestamp = block.timestamp;
-
-        _proceedBuyback(serviceNonce, executionNonce, expectedCreditsAmount);
+        _proceedValidation(serviceNonce);
 
         emit ServiceExecutionValidated(serviceNonce, executionNonce);
     }
@@ -572,66 +467,7 @@ contract VisibilityServices is
     }
 
     /**
-     * @notice Resolves a disputed service execution. Can only be called by the dispute resolver and for service with ETH payment.
-     *
-     * @param serviceNonce The ID of the service.
-     * @param executionNonce The ID of the execution.
-     * @param refund Whether the resolution includes a refund.
-     * @param resolveData The data related to the resolution.
-     * @param expectedCreditsAmount Required if refund is false. The expected amount of credits to buy back (to prevent frontrun/slippage, to get previously with {buyBackCreditsQuote} ).
-     */
-    function resolveServiceExecutionFromEthPayment(
-        uint256 serviceNonce,
-        uint256 executionNonce,
-        bool refund,
-        string calldata resolveData,
-        uint256 expectedCreditsAmount
-    ) external onlyRole(DISPUTE_RESOLVER_ROLE) {
-        VisibilityServicesStorage storage $ = _getVisibilityServicesStorage();
-
-        Service storage service = $.services[serviceNonce];
-        Execution storage execution = service.executions[executionNonce];
-
-        PaymentType paymentType = service.paymentType;
-
-        if (paymentType != PaymentType.ETH) revert InvalidPaymentType();
-
-        if (execution.state != ExecutionState.DISPUTED)
-            revert InvalidExecutionState();
-
-        (address creator, , ) = $.visibilityCredits.getVisibility(
-            service.visibilityId
-        );
-
-        if (creator == address(0)) revert InvalidCreator();
-
-        if (refund) {
-            /// @dev: We update state before refunding to prevent re-entrancy
-            execution.state = ExecutionState.REFUNDED;
-            _proceedRefund(serviceNonce, executionNonce);
-        } else {
-            /// @dev: We update state before payment to prevent re-entrancy
-            execution.state = ExecutionState.VALIDATED;
-
-            _proceedBuyback(
-                serviceNonce,
-                executionNonce,
-                expectedCreditsAmount
-            );
-        }
-
-        execution.lastUpdateTimestamp = block.timestamp;
-
-        emit ServiceExecutionResolved(
-            serviceNonce,
-            executionNonce,
-            refund,
-            resolveData
-        );
-    }
-
-    /**
-     * @notice Resolves a disputed service execution. Can only be called by the dispute resolver and for service with VISIBILITY_CREDITS payment.
+     * @notice Resolves a disputed service execution.
      *
      * @param serviceNonce The ID of the service.
      * @param executionNonce The ID of the execution.
@@ -649,11 +485,6 @@ contract VisibilityServices is
         Service storage service = $.services[serviceNonce];
         Execution storage execution = service.executions[executionNonce];
 
-        PaymentType paymentType = service.paymentType;
-
-        if (paymentType != PaymentType.VISIBILITY_CREDITS)
-            revert InvalidPaymentType();
-
         if (execution.state != ExecutionState.DISPUTED)
             revert InvalidExecutionState();
 
@@ -663,19 +494,13 @@ contract VisibilityServices is
 
         if (creator == address(0)) revert InvalidCreator();
 
+        /// @dev: We update state before refunding to prevent re-entrancy
         if (refund) {
-            /// @dev: We update state before refunding to prevent re-entrancy
             execution.state = ExecutionState.REFUNDED;
-            _proceedRefund(serviceNonce, executionNonce);
+            _proceedRefund(serviceNonce, execution.requester);
         } else {
-            /// @dev: We update state before payment to prevent re-entrancy
             execution.state = ExecutionState.VALIDATED;
-            $.visibilityCredits.transferCredits(
-                service.visibilityId,
-                address(this),
-                creator,
-                service.creditsCostAmount
-            );
+            _proceedValidation(serviceNonce);
         }
 
         execution.lastUpdateTimestamp = block.timestamp;
@@ -688,60 +513,97 @@ contract VisibilityServices is
         );
     }
 
-    function buyBackCreditsQuote(
-        uint256 serviceNonce
-    )
-        public
-        view
-        returns (
-            uint256 protocolAmount,
-            uint256 creatorAmount,
-            uint256 creditsAmount,
-            uint256 totalCost
-        )
-    {
+    /**
+     * @notice Updates the status of an existing service. Can only be called by the service originator.
+     *
+     * @param serviceNonce The ID of the service to update.
+     * @param enabled The new status of the service (true for enabled, false for disabled).
+     */
+    function updateService(uint256 serviceNonce, bool enabled) external {
         VisibilityServicesStorage storage $ = _getVisibilityServicesStorage();
 
         Service storage service = $.services[serviceNonce];
-        string memory visibilityId = service.visibilityId;
+
+        if (service.originator != msg.sender) revert InvalidOriginator();
+
+        service.enabled = enabled;
+        emit ServiceUpdated(serviceNonce, enabled);
+    }
+
+    /**
+     * @notice Updates the buy back credits share of an existing service. Can only be called by the visibility creator.
+     *
+     * @param serviceNonce The ID of the service to update.
+     * @param buyBackCreditsShare The new share in ppm of the ETH payment used to buy back credits.
+     */
+    function updateBuyBackCreditsShare(
+        uint256 serviceNonce,
+        uint256 buyBackCreditsShare
+    ) external {
+        if (buyBackCreditsShare > FEE_DENOMINATOR - PROTOCOL_FEE)
+            revert InvalidBuyBackCreditsShare();
+
+        VisibilityServicesStorage storage $ = _getVisibilityServicesStorage();
+
+        Service storage service = $.services[serviceNonce];
 
         PaymentType paymentType = service.paymentType;
+        if (paymentType != PaymentType.ETH) revert InvalidPaymentType();
 
-        if (paymentType == PaymentType.ETH) {
-            uint256 buyBackCreditsShare = service.buyBackCreditsShare;
-            uint256 weiCostAmount = service.weiCostAmount;
+        string memory visibilityId = service.visibilityId;
+        (address creator, , ) = $.visibilityCredits.getVisibility(visibilityId);
 
-            protocolAmount = (weiCostAmount * PROTOCOL_FEE) / FEE_DENOMINATOR;
+        if (creator != msg.sender) revert InvalidCreator();
 
-            uint256 buyBackAmount = (weiCostAmount * buyBackCreditsShare) /
-                FEE_DENOMINATOR;
+        service.buyBackCreditsShare = buyBackCreditsShare;
 
-            uint256 low = 1;
-            uint256 high = MAX_NB_CREDITS;
-
-            while (low <= high) {
-                uint256 mid = (low + high) / 2;
-                (uint256 _totalCost, ) = $.visibilityCredits.buyCostWithFees(
-                    visibilityId,
-                    mid,
-                    address(this),
-                    address(0)
-                );
-                totalCost = _totalCost;
-
-                if (totalCost > buyBackAmount) {
-                    high = mid - 1;
-                } else {
-                    creditsAmount = mid;
-                    low = mid + 1;
-                }
-            }
-
-            creatorAmount = weiCostAmount - protocolAmount - totalCost;
-        } else {
-            revert InvalidPaymentType();
-        }
+        emit ServiceBuyBackUpdated(serviceNonce, buyBackCreditsShare);
     }
+
+    /**
+     * @notice Allow a visibility creator to spend from its buy back pool, to buy credits from the visibility.
+     * As the credits are sent to the smart contract, it can be considered as "burned".
+     *
+     * @dev Can only be called by the visibility creator.
+     *
+     * @param visibilityId The ID of the visibility.
+     * @param creditsAmount The amount of credits to buy back.
+     */
+    function buyBack(
+        string memory visibilityId,
+        uint256 creditsAmount
+    ) external {
+        VisibilityServicesStorage storage $ = _getVisibilityServicesStorage();
+        (address creator, , ) = $.visibilityCredits.getVisibility(visibilityId);
+        if (creator != msg.sender) revert InvalidCreator();
+
+        (uint256 totalCost, ) = $.visibilityCredits.buyCostWithFees(
+            visibilityId,
+            creditsAmount,
+            address(this),
+            address(0)
+        );
+
+        if ($.buyBackBalances[visibilityId] < totalCost)
+            revert InsufficientValue();
+
+        /// @dev: We update state before payment to prevent from re-entrancy
+        $.buyBackBalances[visibilityId] -= totalCost;
+
+        emit BuyBackPoolUpdated(visibilityId, true, totalCost);
+
+        $.visibilityCredits.buyCredits{value: totalCost}(
+            visibilityId,
+            creditsAmount,
+            address(0)
+        );
+
+        emit BuyBack(visibilityId, totalCost, creditsAmount);
+    }
+
+    /***********************************
+     * VIEW FUNCTIONS
+     * *********************************/
 
     function getService(
         uint256 serviceNonce
@@ -821,18 +683,21 @@ contract VisibilityServices is
         return address($.visibilityCredits);
     }
 
+    function getVisibilityBuyBackBalance(
+        string calldata visibilityId
+    ) external view returns (uint256) {
+        VisibilityServicesStorage storage $ = _getVisibilityServicesStorage();
+        return $.buyBackBalances[visibilityId];
+    }
+
     /***************
      * PRIVATE FUNCTIONS
      * ************/
 
-    function _proceedRefund(
-        uint256 serviceNonce,
-        uint256 executionNonce
-    ) private {
+    function _proceedRefund(uint256 serviceNonce, address requester) private {
         VisibilityServicesStorage storage $ = _getVisibilityServicesStorage();
 
         Service storage service = $.services[serviceNonce];
-        Execution storage execution = service.executions[executionNonce];
 
         PaymentType paymentType = service.paymentType;
 
@@ -840,77 +705,63 @@ contract VisibilityServices is
             $.visibilityCredits.transferCredits(
                 service.visibilityId,
                 address(this),
-                execution.requester,
+                requester,
                 service.creditsCostAmount
             );
         } else if (paymentType == PaymentType.ETH) {
-            Address.sendValue(
-                payable(execution.requester),
-                service.weiCostAmount
-            );
+            Address.sendValue(payable(requester), service.weiCostAmount);
         } else {
             revert InvalidPaymentType();
         }
     }
 
-    function _proceedBuyback(
-        uint256 serviceNonce,
-        uint256 executionNonce,
-        uint256 expectedCreditsAmount
-    ) private {
+    function _proceedValidation(uint256 serviceNonce) private {
         VisibilityServicesStorage storage $ = _getVisibilityServicesStorage();
 
         Service storage service = $.services[serviceNonce];
 
-        (address creator, , ) = $.visibilityCredits.getVisibility(
-            service.visibilityId
-        );
-        if (creator == address(0)) revert InvalidCreator();
-
-        address protocolTreasury = $.visibilityCredits.getProtocolTreasury();
-        if (protocolTreasury == address(0)) revert InvalidProtocolTreasury();
-
+        PaymentType paymentType = service.paymentType;
         string memory visibilityId = service.visibilityId;
 
-        (
-            uint256 protocolAmount,
-            uint256 creatorAmount,
-            uint256 creditsAmount,
-            uint256 totalCost
-        ) = buyBackCreditsQuote(serviceNonce);
+        (address creator, , ) = $.visibilityCredits.getVisibility(visibilityId);
 
-        /// @dev: We check the expected amount of credits to prevent frontrun/slippage
-        if (creditsAmount < expectedCreditsAmount) revert QuoteSlippage();
+        if (creator == address(0)) revert InvalidCreator();
 
-        if (creditsAmount > 0) {
-            uint256 creditsAmountBefore = $
-                .visibilityCredits
-                .getVisibilityCreditBalance(visibilityId, address(this));
-
-            $.visibilityCredits.buyCredits{value: totalCost}(
+        if (paymentType == PaymentType.VISIBILITY_CREDITS) {
+            $.visibilityCredits.transferCredits(
                 visibilityId,
-                creditsAmount,
-                address(0)
+                address(this),
+                creator,
+                service.creditsCostAmount
             );
-
-            uint256 creditsAmountAfter = $
+        } else if (paymentType == PaymentType.ETH) {
+            address protocolTreasury = $
                 .visibilityCredits
-                .getVisibilityCreditBalance(visibilityId, address(this));
+                .getProtocolTreasury();
+            if (protocolTreasury == address(0))
+                revert InvalidProtocolTreasury();
 
-            /// @dev: We check the expected amount of credits has been bought
-            if (creditsAmountAfter - creditsAmountBefore != creditsAmount)
-                revert QuoteSlippage();
+            uint256 buyBackCreditsShare = service.buyBackCreditsShare;
+            uint256 weiCostAmount = service.weiCostAmount;
 
-            emit BuyBack(
-                serviceNonce,
-                executionNonce,
-                visibilityId,
-                totalCost,
-                creditsAmount
-            );
+            uint256 protocolAmount = (weiCostAmount * PROTOCOL_FEE) /
+                FEE_DENOMINATOR;
+
+            uint256 buyBackAmount = (weiCostAmount * buyBackCreditsShare) /
+                FEE_DENOMINATOR;
+
+            uint256 creatorAmount = weiCostAmount -
+                protocolAmount -
+                buyBackAmount;
+
+            /// @dev We send value and then we update buyBackAmount to avoid re-entrancy issues
+            Address.sendValue(payable(protocolTreasury), protocolAmount);
+            Address.sendValue(payable(creator), creatorAmount);
+
+            $.buyBackBalances[visibilityId] += buyBackAmount;
+            emit BuyBackPoolUpdated(visibilityId, false, buyBackAmount);
+        } else {
+            revert InvalidPaymentType();
         }
-
-        Address.sendValue(payable(protocolTreasury), protocolAmount);
-        Address.sendValue(payable(creator), creatorAmount);
     }
 }

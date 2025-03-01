@@ -50,34 +50,12 @@
     },
     {
       "inputs": [],
-      "name": "InvalidWeiCost",
-      "type": "error"
-    },
-    {
-      "inputs": [],
-      "name": "QuoteSlippage",
-      "type": "error"
-    },
-    {
-      "inputs": [],
       "name": "UnauthorizedExecutionAction",
       "type": "error"
     },
     {
       "anonymous": false,
       "inputs": [
-        {
-          "indexed": false,
-          "internalType": "uint256",
-          "name": "serviceNonce",
-          "type": "uint256"
-        },
-        {
-          "indexed": false,
-          "internalType": "uint256",
-          "name": "executionNonce",
-          "type": "uint256"
-        },
         {
           "indexed": false,
           "internalType": "string",
@@ -98,6 +76,31 @@
         }
       ],
       "name": "BuyBack",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": false,
+          "internalType": "string",
+          "name": "visibilityId",
+          "type": "string"
+        },
+        {
+          "indexed": false,
+          "internalType": "bool",
+          "name": "isBuyBack",
+          "type": "bool"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "weiAmount",
+          "type": "uint256"
+        }
+      ],
+      "name": "BuyBackPoolUpdated",
       "type": "event"
     },
     {
@@ -481,40 +484,6 @@
           "internalType": "uint256",
           "name": "serviceNonce",
           "type": "uint256"
-        }
-      ],
-      "name": "buyBackCreditsQuote",
-      "outputs": [
-        {
-          "internalType": "uint256",
-          "name": "protocolAmount",
-          "type": "uint256"
-        },
-        {
-          "internalType": "uint256",
-          "name": "creatorAmount",
-          "type": "uint256"
-        },
-        {
-          "internalType": "uint256",
-          "name": "creditsAmount",
-          "type": "uint256"
-        },
-        {
-          "internalType": "uint256",
-          "name": "totalCost",
-          "type": "uint256"
-        }
-      ],
-      "stateMutability": "view",
-      "type": "function"
-    },
-    {
-      "inputs": [
-        {
-          "internalType": "uint256",
-          "name": "serviceNonce",
-          "type": "uint256"
         },
         {
           "internalType": "uint256",
@@ -742,6 +711,25 @@
       "type": "function"
     },
     {
+      "inputs": [
+        {
+          "internalType": "string",
+          "name": "visibilityId",
+          "type": "string"
+        }
+      ],
+      "name": "getVisibilityBuyBackBalance",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
       "inputs": [],
       "name": "getVisibilityCreditsContract",
       "outputs": [
@@ -808,39 +796,6 @@
           "type": "uint256"
         },
         {
-          "internalType": "uint256",
-          "name": "executionNonce",
-          "type": "uint256"
-        },
-        {
-          "internalType": "bool",
-          "name": "refund",
-          "type": "bool"
-        },
-        {
-          "internalType": "string",
-          "name": "resolveData",
-          "type": "string"
-        },
-        {
-          "internalType": "uint256",
-          "name": "expectedCreditsAmount",
-          "type": "uint256"
-        }
-      ],
-      "name": "resolveServiceExecutionFromEthPayment",
-      "outputs": [],
-      "stateMutability": "nonpayable",
-      "type": "function"
-    },
-    {
-      "inputs": [
-        {
-          "internalType": "uint256",
-          "name": "serviceNonce",
-          "type": "uint256"
-        },
-        {
           "internalType": "bool",
           "name": "enabled",
           "type": "bool"
@@ -865,29 +820,6 @@
         }
       ],
       "name": "validateServiceExecution",
-      "outputs": [],
-      "stateMutability": "nonpayable",
-      "type": "function"
-    },
-    {
-      "inputs": [
-        {
-          "internalType": "uint256",
-          "name": "serviceNonce",
-          "type": "uint256"
-        },
-        {
-          "internalType": "uint256",
-          "name": "executionNonce",
-          "type": "uint256"
-        },
-        {
-          "internalType": "uint256",
-          "name": "expectedCreditsAmount",
-          "type": "uint256"
-        }
-      ],
-      "name": "validateServiceExecutionFromEthPayment",
       "outputs": [],
       "stateMutability": "nonpayable",
       "type": "function"
