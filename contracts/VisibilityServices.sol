@@ -38,7 +38,7 @@ contract VisibilityServices is
         IVisibilityCredits visibilityCredits;
         uint256 servicesNonce; // Counter for service IDs
         mapping(uint256 => Service) services; // Mapping of services by nonce
-        mapping(string visibilityId => uint256) buyBackBalances; // added to support shares buy back
+        mapping(string visibilityId => uint256) buyBackBalances; // ETH balance (in wei), added to support shares buy back
     }
 
     // keccak256(abi.encode(uint256(keccak256("noodles.VisibilityServices")) - 1)) & ~bytes32(uint256(0xff))
@@ -413,9 +413,6 @@ contract VisibilityServices is
 
         PaymentType paymentType = service.paymentType;
 
-        if (paymentType != PaymentType.VISIBILITY_CREDITS)
-            revert InvalidPaymentType();
-
         if (execution.state != ExecutionState.ACCEPTED)
             revert InvalidExecutionState();
 
@@ -487,12 +484,6 @@ contract VisibilityServices is
 
         if (execution.state != ExecutionState.DISPUTED)
             revert InvalidExecutionState();
-
-        (address creator, , ) = $.visibilityCredits.getVisibility(
-            service.visibilityId
-        );
-
-        if (creator == address(0)) revert InvalidCreator();
 
         /// @dev: We update state before refunding to prevent re-entrancy
         if (refund) {
@@ -605,6 +596,9 @@ contract VisibilityServices is
      * VIEW FUNCTIONS
      * *********************************/
 
+    /**
+     * @notice Returns the details of a service (legacy => Visbility Credits Payment).
+     */
     function getService(
         uint256 serviceNonce
     )
@@ -620,6 +614,12 @@ contract VisibilityServices is
     {
         VisibilityServicesStorage storage $ = _getVisibilityServicesStorage();
         Service storage service = $.services[serviceNonce];
+
+        PaymentType paymentType = service.paymentType;
+
+        if (paymentType != PaymentType.VISIBILITY_CREDITS)
+            revert InvalidPaymentType();
+
         return (
             service.enabled,
             service.serviceType,
@@ -629,6 +629,9 @@ contract VisibilityServices is
         );
     }
 
+    /**
+     * @notice Returns the details of a service (ETH Payment).
+     */
     function getServiceWithEthPayment(
         uint256 serviceNonce
     )
@@ -645,6 +648,11 @@ contract VisibilityServices is
     {
         VisibilityServicesStorage storage $ = _getVisibilityServicesStorage();
         Service storage service = $.services[serviceNonce];
+
+        PaymentType paymentType = service.paymentType;
+
+        if (paymentType != PaymentType.ETH) revert InvalidPaymentType();
+
         return (
             service.enabled,
             service.serviceType,
