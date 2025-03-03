@@ -50,6 +50,11 @@
     },
     {
       "inputs": [],
+      "name": "QuoteSlippage",
+      "type": "error"
+    },
+    {
+      "inputs": [],
       "name": "UnauthorizedExecutionAction",
       "type": "error"
     },
@@ -481,6 +486,29 @@
     {
       "inputs": [
         {
+          "internalType": "string",
+          "name": "visibilityId",
+          "type": "string"
+        },
+        {
+          "internalType": "uint256",
+          "name": "creditsAmount",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "maxWeiAmount",
+          "type": "uint256"
+        }
+      ],
+      "name": "buyBack",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
           "internalType": "uint256",
           "name": "serviceNonce",
           "type": "uint256"
@@ -718,7 +746,7 @@
           "type": "string"
         }
       ],
-      "name": "getVisibilityBuyBackBalance",
+      "name": "getVisibilityBuyBackEthBalance",
       "outputs": [
         {
           "internalType": "uint256",
@@ -784,6 +812,24 @@
         }
       ],
       "name": "resolveServiceExecution",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "serviceNonce",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "buyBackCreditsShare",
+          "type": "uint256"
+        }
+      ],
+      "name": "updateBuyBackCreditsShare",
       "outputs": [],
       "stateMutability": "nonpayable",
       "type": "function"

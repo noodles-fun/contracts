@@ -233,6 +233,58 @@ export const deployProxyContract = async (
   return contract
 }
 
+export const upgradeProxyContract = async (
+  contractProxyAddress: string,
+  contractUpgradedArtifactName: string,
+  options?: DeployContractOptions
+): Promise<string> => {
+  const log = (message: string) => {
+    if (!options?.silent) console.log(message)
+  }
+
+  const provider = getProvider()
+
+  const wallet = options?.wallet ?? getWallet()
+  const deployer = new Deployer(hre, wallet)
+
+  const chainId = (await provider.getNetwork()).chainId.toString()
+
+  log(
+    `\n[chainId = ${chainId}] - Starting upgrade process to "${contractUpgradedArtifactName}" for proxy ${contractProxyAddress}...`
+  )
+
+  const artifact = await deployer.loadArtifact(contractUpgradedArtifactName)
+  const upgrade = await hre.zkUpgrades.upgradeProxy(
+    deployer.zkWallet,
+    contractProxyAddress,
+    artifact
+  )
+
+  await upgrade.waitForDeployment()
+
+  const newImplementation = await getImplementationAddress(
+    getProvider(),
+    contractProxyAddress
+  )
+
+  log(
+    `\n"${contractProxyAddress}" was successfully upgraded to ${newImplementation} with ${contractUpgradedArtifactName}  !`
+  )
+
+  if (!options?.noVerify && hre.network.config.verifyURL) {
+    log(`Requesting contract verification...`)
+    try {
+      await verifyContract({
+        address: newImplementation
+      })
+    } catch (e) {
+      console.log(`Error verifying contract: ${e}`)
+    }
+  }
+
+  return newImplementation
+}
+
 /**
  * Rich wallets can be used for testing purposes.
  * Available on ZKsync In-memory node and Dockerized node.

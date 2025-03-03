@@ -32,10 +32,14 @@ interface IVisibilityServices {
         mapping(uint256 => Execution) executions; // Mapping of executions by nonce
         address originator; // Address that created the service
         //
-        /// @dev Added to support ETH payment
-        PaymentType paymentType; // Payment type for the service
-        uint256 buyBackCreditsShare; // How much of the ETH payment is used to buy back credits
+        /// @dev Added to support ETH payment, force to a new slot
         uint256 weiCostAmount; // Cost in WEI for the service, if paymentType is ETH
+        uint256 buyBackCreditsShare; // How much of the ETH payment is used to buy back credits
+        PaymentType paymentType; // Payment type for the service
+    }
+
+    struct BuyBackPools {
+        mapping(string visibilityId => uint256) buyBackEthBalances; // ETH balance (in wei), added to support shares buy back
     }
 
     event BuyBack(
@@ -131,7 +135,14 @@ interface IVisibilityServices {
     error InvalidPaymentType();
     error InvalidProtocolTreasury();
     error InsufficientValue();
+    error QuoteSlippage();
     error UnauthorizedExecutionAction();
+
+    function buyBack(
+        string memory visibilityId,
+        uint256 creditsAmount,
+        uint256 maxWeiAmount
+    ) external;
 
     function createService(
         string memory serviceType,
@@ -152,6 +163,11 @@ interface IVisibilityServices {
     ) external;
 
     function updateService(uint256 serviceNonce, bool enabled) external;
+
+    function updateBuyBackCreditsShare(
+        uint256 serviceNonce,
+        uint256 buyBackCreditsShare
+    ) external;
 
     function requestServiceExecution(
         uint256 serviceNonce,
@@ -235,7 +251,7 @@ interface IVisibilityServices {
 
     function getVisibilityCreditsContract() external view returns (address);
 
-    function getVisibilityBuyBackBalance(
+    function getVisibilityBuyBackEthBalance(
         string calldata visibilityId
     ) external view returns (uint256);
 }

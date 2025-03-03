@@ -38,7 +38,7 @@ contract VisibilityServices is
         IVisibilityCredits visibilityCredits;
         uint256 servicesNonce; // Counter for service IDs
         mapping(uint256 => Service) services; // Mapping of services by nonce
-        mapping(string visibilityId => uint256) buyBackBalances; // ETH balance (in wei), added to support shares buy back
+        BuyBackPools buyBackPools; // Added: Buy back balances for each visibility
     }
 
     // keccak256(abi.encode(uint256(keccak256("noodles.VisibilityServices")) - 1)) & ~bytes32(uint256(0xff))
@@ -191,18 +191,20 @@ contract VisibilityServices is
         $.services[nonce].enabled = true;
         $.services[nonce].serviceType = serviceType;
         $.services[nonce].visibilityId = visibilityId;
-        $.services[nonce].creditsCostAmount = paymentType ==
-            PaymentType.VISIBILITY_CREDITS
-            ? costAmount
-            : 0;
+
         $.services[nonce].executionsNonce = 0;
         $.services[nonce].originator = msg.sender;
 
         $.services[nonce].paymentType = paymentType;
         $.services[nonce].buyBackCreditsShare = buyBackCreditsShare;
-        $.services[nonce].weiCostAmount = paymentType == PaymentType.ETH
-            ? costAmount
-            : 0;
+
+        if (paymentType == PaymentType.VISIBILITY_CREDITS) {
+            $.services[nonce].creditsCostAmount = costAmount;
+        } else if (paymentType == PaymentType.ETH) {
+            $.services[nonce].weiCostAmount = costAmount;
+        } else {
+            revert InvalidPaymentType();
+        }
 
         $.servicesNonce += 1;
 
@@ -223,8 +225,6 @@ contract VisibilityServices is
                 buyBackCreditsShare,
                 costAmount
             );
-        } else {
-            revert InvalidPaymentType();
         }
 
         service.enabled = false;
@@ -268,6 +268,13 @@ contract VisibilityServices is
         } else if (paymentType == PaymentType.ETH) {
             uint256 weiCostAmount = service.weiCostAmount;
             if (msg.value < weiCostAmount) revert InsufficientValue();
+
+            if (msg.value > weiCostAmount) {
+                Address.sendValue(
+                    payable(msg.sender),
+                    msg.value - weiCostAmount
+                );
+            }
         } else {
             revert InvalidPaymentType();
         }
@@ -410,8 +417,6 @@ contract VisibilityServices is
 
         Service storage service = $.services[serviceNonce];
         Execution storage execution = service.executions[executionNonce];
-
-        PaymentType paymentType = service.paymentType;
 
         if (execution.state != ExecutionState.ACCEPTED)
             revert InvalidExecutionState();
@@ -559,10 +564,12 @@ contract VisibilityServices is
      *
      * @param visibilityId The ID of the visibility.
      * @param creditsAmount The amount of credits to buy back.
+     * @param maxWeiAmount The maximum amount of WEI to spend.
      */
     function buyBack(
         string memory visibilityId,
-        uint256 creditsAmount
+        uint256 creditsAmount,
+        uint256 maxWeiAmount
     ) external {
         VisibilityServicesStorage storage $ = _getVisibilityServicesStorage();
         (address creator, , ) = $.visibilityCredits.getVisibility(visibilityId);
@@ -575,13 +582,13 @@ contract VisibilityServices is
             address(0)
         );
 
-        if ($.buyBackBalances[visibilityId] < totalCost)
+        if (totalCost > maxWeiAmount) revert QuoteSlippage();
+
+        if ($.buyBackPools.buyBackEthBalances[visibilityId] < totalCost)
             revert InsufficientValue();
 
         /// @dev: We update state before payment to prevent from re-entrancy
-        $.buyBackBalances[visibilityId] -= totalCost;
-
-        emit BuyBackPoolUpdated(visibilityId, true, totalCost);
+        $.buyBackPools.buyBackEthBalances[visibilityId] -= totalCost;
 
         $.visibilityCredits.buyCredits{value: totalCost}(
             visibilityId,
@@ -589,6 +596,7 @@ contract VisibilityServices is
             address(0)
         );
 
+        emit BuyBackPoolUpdated(visibilityId, true, totalCost);
         emit BuyBack(visibilityId, totalCost, creditsAmount);
     }
 
@@ -691,11 +699,11 @@ contract VisibilityServices is
         return address($.visibilityCredits);
     }
 
-    function getVisibilityBuyBackBalance(
+    function getVisibilityBuyBackEthBalance(
         string calldata visibilityId
     ) external view returns (uint256) {
         VisibilityServicesStorage storage $ = _getVisibilityServicesStorage();
-        return $.buyBackBalances[visibilityId];
+        return $.buyBackPools.buyBackEthBalances[visibilityId];
     }
 
     /***************
@@ -762,11 +770,13 @@ contract VisibilityServices is
                 protocolAmount -
                 buyBackAmount;
 
-            /// @dev We send value and then we update buyBackAmount to avoid re-entrancy issues
             Address.sendValue(payable(protocolTreasury), protocolAmount);
             Address.sendValue(payable(creator), creatorAmount);
 
-            $.buyBackBalances[visibilityId] += buyBackAmount;
+            /// @dev Reentrancy from the creator protection
+            ////@dev We want the creator to wait the end of this execution before being able to buy back credits
+            $.buyBackPools.buyBackEthBalances[visibilityId] += buyBackAmount;
+
             emit BuyBackPoolUpdated(visibilityId, false, buyBackAmount);
         } else {
             revert InvalidPaymentType();
