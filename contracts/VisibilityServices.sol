@@ -540,19 +540,16 @@ contract VisibilityServices is
             revert InvalidBuyBackCreditsShare();
 
         VisibilityServicesStorage storage $ = _getVisibilityServicesStorage();
-
         Service storage service = $.services[serviceNonce];
+
+        string memory visibilityId = service.visibilityId;
+        (address creator, , ) = $.visibilityCredits.getVisibility(visibilityId);
+        if (creator != msg.sender) revert InvalidCreator();
 
         PaymentType paymentType = service.paymentType;
         if (paymentType != PaymentType.ETH) revert InvalidPaymentType();
 
-        string memory visibilityId = service.visibilityId;
-        (address creator, , ) = $.visibilityCredits.getVisibility(visibilityId);
-
-        if (creator != msg.sender) revert InvalidCreator();
-
         service.buyBackCreditsShare = buyBackCreditsShare;
-
         emit ServiceBuyBackUpdated(serviceNonce, buyBackCreditsShare);
     }
 
@@ -617,57 +614,26 @@ contract VisibilityServices is
             string memory serviceType,
             string memory visibilityId,
             uint256 creditsCostAmount,
-            uint256 executionsNonce
+            uint256 executionsNonce,
+            address originator,
+            uint256 weiCostAmount,
+            uint256 buyBackCreditsShare,
+            PaymentType paymentType
         )
     {
         VisibilityServicesStorage storage $ = _getVisibilityServicesStorage();
         Service storage service = $.services[serviceNonce];
-
-        PaymentType paymentType = service.paymentType;
-
-        if (paymentType != PaymentType.VISIBILITY_CREDITS)
-            revert InvalidPaymentType();
 
         return (
             service.enabled,
             service.serviceType,
             service.visibilityId,
             service.creditsCostAmount,
-            service.executionsNonce
-        );
-    }
-
-    /**
-     * @notice Returns the details of a service (ETH Payment).
-     */
-    function getServiceWithEthPayment(
-        uint256 serviceNonce
-    )
-        external
-        view
-        returns (
-            bool enabled,
-            string memory serviceType,
-            string memory visibilityId,
-            uint256 buyBackCreditsShare,
-            uint256 weiCostAmount,
-            uint256 executionsNonce
-        )
-    {
-        VisibilityServicesStorage storage $ = _getVisibilityServicesStorage();
-        Service storage service = $.services[serviceNonce];
-
-        PaymentType paymentType = service.paymentType;
-
-        if (paymentType != PaymentType.ETH) revert InvalidPaymentType();
-
-        return (
-            service.enabled,
-            service.serviceType,
-            service.visibilityId,
-            service.buyBackCreditsShare,
+            service.executionsNonce,
+            service.originator,
             service.weiCostAmount,
-            service.executionsNonce
+            service.buyBackCreditsShare,
+            service.paymentType
         );
     }
 

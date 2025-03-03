@@ -46,6 +46,8 @@ describe('VisibilityServices', function () {
   const weiCostAmount: bigint = parseEther('0.01')
 
   const adminDelay: number = 60 * 60 * 24 * 3 // 3 days
+  const serviceTypeVC = 'x-post'
+  const serviceTypeETH = 'x-post-eth'
 
   ;[
     deployer,
@@ -117,7 +119,7 @@ describe('VisibilityServices', function () {
     tx = await visibilityServices
       .connect(creator)
       .createServiceWithETH(
-        'x-post',
+        serviceTypeETH,
         visibilityId1,
         buybackShare,
         weiCostAmount
@@ -129,7 +131,7 @@ describe('VisibilityServices', function () {
     // Creator creates a service, paymentType = Visibility credits
     tx = await visibilityServices
       .connect(creator)
-      .createService('x-post', visibilityId1, creditsCostAmount)
+      .createService(serviceTypeVC, visibilityId1, creditsCostAmount)
     await tx.wait()
 
     serviceNoncePaymentVisibilityCredits = 1
@@ -138,6 +140,27 @@ describe('VisibilityServices', function () {
 
     executionNonceServiceVisibilityCredits = 0
     executionNonceServiceVisibilityETH = 0
+  }
+
+  async function deployAcceptedEthServiceFixture() {
+    await loadFixture(deployFixture)
+    tx = await visibilityServices
+      .connect(user1)
+      .requestServiceExecution(
+        serviceNoncePaymentVisibilityETH,
+        'Request Data',
+        { value: weiCostAmount }
+      )
+    await tx.wait()
+
+    tx = await visibilityServices
+      .connect(creator)
+      .acceptServiceExecution(
+        serviceNoncePaymentVisibilityETH,
+        executionNonceServiceVisibilityETH,
+        'Response Data'
+      )
+    await tx.wait()
   }
 
   describe('Deployment and Initial Setup', function () {
@@ -163,18 +186,78 @@ describe('VisibilityServices', function () {
   })
 
   describe('Service Creation and Management', function () {
-    it('Should create a service successfully', async function () {
+    it('Should create a service with payment type Visibility Credits successfully', async function () {
       await loadFixture(deployFixture)
 
-      const [enabled, serviceType, visibilityId, creditsCostAmount] =
-        await visibilityServices.getService(
-          serviceNoncePaymentVisibilityCredits
-        )
+      const [
+        _enabled,
+        _serviceType,
+        _visibilityId,
+        _creditsCostAmount,
+        _executionsNonce,
+        _originator,
+        _weiCostAmount,
+        _buyBackCreditsShare,
+        _paymentType
+      ] = await visibilityServices.getService(
+        serviceNoncePaymentVisibilityCredits
+      )
 
-      expect(enabled).to.equal(true)
-      expect(serviceType).to.equal('x-post')
-      expect(visibilityId).to.equal(visibilityId1)
-      expect(creditsCostAmount).to.equal(creditsCostAmount)
+      expect(_enabled).to.equal(true)
+      expect(_serviceType).to.equal(serviceTypeVC)
+      expect(_visibilityId).to.equal(visibilityId1)
+      expect(_creditsCostAmount).to.equal(creditsCostAmount)
+      expect(_executionsNonce).to.equal(executionNonceServiceVisibilityCredits)
+      expect(_originator).to.equal(creator.address)
+      expect(_weiCostAmount).to.equal(0)
+      expect(_buyBackCreditsShare).to.equal(0)
+      expect(_paymentType).to.equal(0)
+    })
+
+    it('Should create a service with payment type ETH successfully', async function () {
+      await loadFixture(deployFixture)
+
+      const [
+        _enabled,
+        _serviceType,
+        _visibilityId,
+        _creditsCostAmount,
+        _executionsNonce,
+        _originator,
+        _weiCostAmount,
+        _buyBackCreditsShare,
+        _paymentType
+      ] = await visibilityServices.getService(serviceNoncePaymentVisibilityETH)
+
+      expect(_enabled).to.equal(true)
+      expect(_serviceType).to.equal(serviceTypeETH)
+      expect(_visibilityId).to.equal(visibilityId1)
+      expect(_creditsCostAmount).to.equal(0)
+      expect(_executionsNonce).to.equal(executionNonceServiceVisibilityETH)
+      expect(_originator).to.equal(creator.address)
+      expect(_weiCostAmount).to.equal(weiCostAmount)
+      expect(_buyBackCreditsShare).to.equal(buybackShare)
+      expect(_paymentType).to.equal(1)
+    })
+
+    it('Should allow anyone to create any service', async function () {
+      await loadFixture(deployFixture)
+
+      tx = await visibilityServices
+        .connect(user1)
+        .createService('test', visibilityId1, creditsCostAmount)
+
+      await tx.wait()
+
+      expect(tx)
+        .to.emit(visibilityServices, 'ServiceCreated')
+        .withArgs(
+          user1,
+          newServiceNonce,
+          serviceTypeVC,
+          visibilityId1,
+          creditsCostAmount
+        )
     })
 
     it('Should update a service successfully', async function () {
@@ -184,14 +267,22 @@ describe('VisibilityServices', function () {
         .connect(creator)
         .updateService(serviceNoncePaymentVisibilityCredits, false)
       await tx.wait()
-      const [enabled] = await visibilityServices.getService(
+      const [enabledVC] = await visibilityServices.getService(
         serviceNoncePaymentVisibilityCredits
       )
 
-      expect(enabled).to.equal(false)
+      tx = await visibilityServices
+        .connect(creator)
+        .updateService(serviceNoncePaymentVisibilityETH, false)
+      await tx.wait()
+      const [enabledETH] = await visibilityServices.getService(
+        serviceNoncePaymentVisibilityETH
+      )
+
+      expect(enabledETH).to.equal(false)
     })
 
-    it('Should create and update from an existing service', async function () {
+    it('Should create and update from an existing service (payment type Visibility Credits)', async function () {
       await loadFixture(deployFixture)
 
       const newCreditsCostAmount = 55
@@ -209,33 +300,68 @@ describe('VisibilityServices', function () {
       )
       expect(enabledAfter).to.equal(false)
 
-      const [enabled, serviceType, visibilityId, creditsCostAmount] =
-        await visibilityServices.getService(newServiceNonce)
+      const [
+        _enabled,
+        _serviceType,
+        _visibilityId,
+        _creditsCostAmount,
+        _executionsNonce,
+        _originator,
+        _weiCostAmount,
+        _buyBackCreditsShare,
+        _paymentType
+      ] = await visibilityServices.getService(newServiceNonce)
 
-      expect(enabled).to.equal(true)
-      expect(serviceType).to.equal('x-post')
-      expect(visibilityId).to.equal(visibilityId1)
-      expect(creditsCostAmount).to.equal(newCreditsCostAmount)
+      expect(_enabled).to.equal(true)
+      expect(_serviceType).to.equal(serviceTypeVC)
+      expect(_visibilityId).to.equal(visibilityId1)
+      expect(_creditsCostAmount).to.equal(newCreditsCostAmount)
+      expect(_executionsNonce).to.equal(0)
+      expect(_originator).to.equal(creator.address)
+      expect(_weiCostAmount).to.equal(0)
+      expect(_buyBackCreditsShare).to.equal(0)
+      expect(_paymentType).to.equal(0)
     })
 
-    it('Should allow anyone to create any service', async function () {
+    it('Should create and update from an existing service (payment type ETH)', async function () {
       await loadFixture(deployFixture)
 
-      tx = await visibilityServices
-        .connect(user1)
-        .createService('test', visibilityId1, creditsCostAmount)
+      const newWeiAmount = parseEther('0.02')
 
+      tx = await visibilityServices
+        .connect(creator)
+        .createAndUpdateFromService(
+          serviceNoncePaymentVisibilityETH,
+          newWeiAmount
+        )
       await tx.wait()
 
-      expect(tx)
-        .to.emit(visibilityServices, 'ServiceCreated')
-        .withArgs(
-          user1,
-          newServiceNonce,
-          'x-post',
-          visibilityId1,
-          creditsCostAmount
-        )
+      const [enabledAfter] = await visibilityServices.getService(
+        serviceNoncePaymentVisibilityETH
+      )
+      expect(enabledAfter).to.equal(false)
+
+      const [
+        _enabled,
+        _serviceType,
+        _visibilityId,
+        _creditsCostAmount,
+        _executionsNonce,
+        _originator,
+        _weiCostAmount,
+        _buyBackCreditsShare,
+        _paymentType
+      ] = await visibilityServices.getService(newServiceNonce)
+
+      expect(_enabled).to.equal(true)
+      expect(_serviceType).to.equal(serviceTypeETH)
+      expect(_visibilityId).to.equal(visibilityId1)
+      expect(_creditsCostAmount).to.equal(0)
+      expect(_executionsNonce).to.equal(0)
+      expect(_originator).to.equal(creator.address)
+      expect(_weiCostAmount).to.equal(newWeiAmount)
+      expect(_buyBackCreditsShare).to.equal(buybackShare)
+      expect(_paymentType).to.equal(1)
     })
 
     it('Should revert if non-originator tries to update a service', async function () {
@@ -289,9 +415,79 @@ describe('VisibilityServices', function () {
           .updateService(newServiceNonce, false)
       ).to.be.revertedWithCustomError(visibilityServices, 'InvalidOriginator')
     })
+
+    it('Should allow creator to update buyback share value', async function () {
+      await loadFixture(deployFixture)
+
+      const newBuyBackShare = 600_000 // 60%
+
+      tx = await visibilityServices
+        .connect(creator)
+        .updateBuyBackCreditsShare(
+          serviceNoncePaymentVisibilityETH,
+          newBuyBackShare
+        )
+      await tx.wait()
+
+      expect(tx)
+        .to.emit(visibilityServices, 'ServiceBuyBackUpdated')
+        .withArgs(serviceNoncePaymentVisibilityETH, newBuyBackShare)
+
+      const _newBuyBackShare = (
+        await visibilityServices.getService(serviceNoncePaymentVisibilityETH)
+      )[7]
+      expect(_newBuyBackShare).to.equal(newBuyBackShare)
+    })
+
+    it('Should revert if non-creator tries to update buyback share value', async function () {
+      await loadFixture(deployFixture)
+
+      tx = await visibilityServices
+        .connect(user1)
+        .createServiceWithETH(
+          serviceTypeETH,
+          visibilityId1,
+          buybackShare,
+          weiCostAmount
+        )
+      await tx.wait()
+
+      expect(
+        (await visibilityServices.getService(newServiceNonce))[5]
+      ).to.equal(user1.address)
+
+      await expect(
+        visibilityServices
+          .connect(user1)
+          .updateBuyBackCreditsShare(newServiceNonce, 600_000)
+      ).to.be.revertedWithCustomError(visibilityServices, 'InvalidCreator')
+    })
+
+    it('Should revert if trying to update buyback share value with invalid service nonce', async function () {
+      await loadFixture(deployFixture)
+
+      await expect(
+        visibilityServices
+          .connect(creator)
+          .updateBuyBackCreditsShare(newServiceNonce, 600_000)
+      ).to.be.revertedWithCustomError(visibilityServices, 'InvalidCreator')
+    })
+
+    it('Should revert if trying to update buyback share value for service with Visibility Credits payments', async function () {
+      await loadFixture(deployFixture)
+
+      await expect(
+        visibilityServices
+          .connect(creator)
+          .updateBuyBackCreditsShare(
+            serviceNoncePaymentVisibilityCredits,
+            600_000
+          )
+      ).to.be.revertedWithCustomError(visibilityServices, 'InvalidPaymentType')
+    })
   })
 
-  describe('Service Execution Flow', function () {
+  describe('Service Execution Flow (Generic / Visibility Credits Payments)', function () {
     it('Should request service execution successfully', async function () {
       await loadFixture(deployFixture)
 
@@ -359,6 +555,106 @@ describe('VisibilityServices', function () {
         visibilityCredits,
         'NotEnoughCreditsOwned'
       )
+    })
+
+    it('Should allow creator or requester to cancel', async function () {
+      await loadFixture(deployFixture)
+
+      tx = await visibilityServices
+        .connect(user1)
+        .requestServiceExecution(
+          serviceNoncePaymentVisibilityCredits,
+          'Request Data'
+        )
+      await tx.wait()
+
+      expect(
+        await visibilityCredits.getVisibilityCreditBalance(
+          visibilityId1,
+          user1.address
+        )
+      ).to.be.equal(initialCreditsBalanceUser1 - creditsCostAmount)
+
+      tx = await visibilityServices
+        .connect(creator)
+        .cancelServiceExecution(
+          serviceNoncePaymentVisibilityCredits,
+          executionNonceServiceVisibilityCredits,
+          'Cancel Data'
+        )
+      await tx.wait()
+
+      expect(tx)
+        .to.emit(visibilityServices, 'ServiceExecutionCanceled')
+        .withArgs(
+          serviceNoncePaymentVisibilityCredits,
+          executionNonceServiceVisibilityCredits,
+          creator.address,
+          'Cancel Data'
+        )
+
+      const [state] = await visibilityServices.getServiceExecution(
+        serviceNoncePaymentVisibilityCredits,
+        executionNonceServiceVisibilityCredits
+      )
+
+      expect(state).to.equal(4) // CANCELED
+
+      expect(
+        await visibilityCredits.getVisibilityCreditBalance(
+          visibilityId1,
+          user1.address
+        )
+      ).to.be.equal(initialCreditsBalanceUser1)
+
+      tx = await visibilityServices
+        .connect(user1)
+        .requestServiceExecution(
+          serviceNoncePaymentVisibilityCredits,
+          'Request Data'
+        )
+      await tx.wait()
+
+      expect(
+        await visibilityCredits.getVisibilityCreditBalance(
+          visibilityId1,
+          user1.address
+        )
+      ).to.be.equal(initialCreditsBalanceUser1 - creditsCostAmount)
+
+      tx = await visibilityServices
+        .connect(user1)
+        .cancelServiceExecution(
+          serviceNoncePaymentVisibilityCredits,
+          executionNonceServiceVisibilityCredits + 1,
+          'Cancel Data'
+        )
+      await tx.wait()
+
+      expect(tx)
+        .to.emit(visibilityServices, 'ServiceExecutionCanceled')
+        .withArgs(
+          serviceNoncePaymentVisibilityCredits,
+          executionNonceServiceVisibilityCredits + 1,
+          user1.address,
+          'Cancel Data'
+        )
+
+      expect(
+        (
+          await visibilityServices.getServiceExecution(
+            serviceNoncePaymentVisibilityCredits,
+            executionNonceServiceVisibilityCredits + 1
+          )
+        )[0]
+      ).to.equal(4) // CANCELED
+
+      expect(
+        await visibilityCredits.getVisibilityCreditBalance(
+          visibilityId1,
+          user1.address
+        )
+      ).to.be.equal(initialCreditsBalanceUser1)
     })
 
     it('Should allow creator, dispute resolver or requester to add information context', async function () {
@@ -582,6 +878,10 @@ describe('VisibilityServices', function () {
     })
 
     it('Should validate a service after the delay', async function () {
+      const contractBalanceBefore = await provider.getBalance(
+        await visibilityServices.getAddress()
+      )
+
       await loadFixture(deployFixture)
       tx = await visibilityServices
         .connect(user1)
@@ -623,7 +923,13 @@ describe('VisibilityServices', function () {
           visibilityId1,
           creator.address
         )
-      expect(creatorBalanceAfter).to.be.equal(creditsCostAmount) // Ensure user1 received the refund
+      expect(creatorBalanceAfter).to.be.equal(creditsCostAmount) // Ensure user1 received the funds
+
+      const contractBalanceAfter = await provider.getBalance(
+        await visibilityServices.getAddress()
+      )
+
+      expect(contractBalanceAfter).to.be.equal(contractBalanceBefore) // Ensure the contract balance is the same
     })
 
     it('Should revert if someone tries to validate before 5 days has passed, and they are not the requester', async () => {
@@ -960,6 +1266,346 @@ describe('VisibilityServices', function () {
     })
   })
 
+  describe('Service Execution Flow (ETH Payments specific tests)', function () {
+    it('Should request service execution successfully', async function () {
+      await loadFixture(deployFixture)
+
+      tx = await visibilityServices
+        .connect(user1)
+        .requestServiceExecution(
+          serviceNoncePaymentVisibilityETH,
+          'Request Data',
+          { value: weiCostAmount }
+        )
+      await tx.wait()
+
+      const [state, requester] = await visibilityServices.getServiceExecution(
+        serviceNoncePaymentVisibilityETH,
+        executionNonceServiceVisibilityETH
+      )
+
+      expect(state).to.equal(1) // REQUESTED
+      expect(requester).to.equal(user1.address)
+
+      // No Visibility Credits paid
+      const user1BalanceAfter =
+        await visibilityCredits.getVisibilityCreditBalance(
+          visibilityId1,
+          user1.address
+        )
+      expect(user1BalanceAfter).to.be.equal(initialCreditsBalanceUser1)
+    })
+
+    it('Should not allow requesting execution on a disabled service', async function () {
+      await loadFixture(deployFixture)
+      tx = await visibilityServices
+        .connect(creator)
+        .updateService(serviceNoncePaymentVisibilityETH, false)
+      await tx.wait()
+      await expect(
+        visibilityServices
+          .connect(user1)
+          .requestServiceExecution(
+            serviceNoncePaymentVisibilityETH,
+            'Request Data',
+            { value: weiCostAmount }
+          )
+      ).to.be.revertedWithCustomError(visibilityServices, 'DisabledService')
+    })
+
+    it('Should revert if the user does not have enough value for execution', async function () {
+      await loadFixture(deployFixture)
+
+      const insufficientValue = weiCostAmount - 1n
+
+      await expect(
+        visibilityServices
+          .connect(user2)
+          .requestServiceExecution(
+            serviceNoncePaymentVisibilityETH,
+            'Request Data',
+            { value: insufficientValue }
+          )
+      ).to.be.revertedWithCustomError(visibilityServices, 'InsufficientValue')
+    })
+
+    it('Should allow creator to cancel', async function () {
+      await loadFixture(deployFixture)
+
+      tx = await visibilityServices
+        .connect(user1)
+        .requestServiceExecution(
+          serviceNoncePaymentVisibilityETH,
+          'Request Data',
+          { value: weiCostAmount }
+        )
+      await tx.wait()
+
+      const requesterBalanceBefore = await provider.getBalance(user1.address)
+
+      tx = await visibilityServices
+        .connect(creator)
+        .cancelServiceExecution(
+          serviceNoncePaymentVisibilityETH,
+          executionNonceServiceVisibilityETH,
+          'Cancel Data'
+        )
+      await tx.wait()
+
+      expect(tx)
+        .to.emit(visibilityServices, 'ServiceExecutionCanceled')
+        .withArgs(
+          serviceNoncePaymentVisibilityETH,
+          executionNonceServiceVisibilityETH,
+          creator.address,
+          'Cancel Data'
+        )
+
+      const [state] = await visibilityServices.getServiceExecution(
+        serviceNoncePaymentVisibilityETH,
+        executionNonceServiceVisibilityETH
+      )
+
+      expect(state).to.equal(4) // CANCELED
+
+      const requesterBalanceAfter = await provider.getBalance(user1.address)
+
+      expect(requesterBalanceAfter).to.be.equal(
+        requesterBalanceBefore + weiCostAmount
+      )
+    })
+
+    it('Should validate a service after the delay', async function () {
+      await loadFixture(deployAcceptedEthServiceFixture)
+
+      // Simulate passing of AUTO_VALIDATION_DELAY
+      await provider.send('evm_increaseTime', [5 * 24 * 60 * 60 + 1]) // 5 days + 1 second
+      await provider.send('evm_mine', [])
+
+      const contractBalanceBefore = await provider.getBalance(
+        await visibilityServices.getAddress()
+      )
+      const creatorBalanceBefore = await provider.getBalance(creator.address)
+      const treasuryBalanceBefore = await provider.getBalance(treasury.address)
+      const buyBackPoolBefore =
+        await visibilityServices.getVisibilityBuyBackEthBalance(visibilityId1)
+      const creditsCreatorBalanceBefore =
+        await visibilityCredits.getVisibilityCreditBalance(
+          visibilityId1,
+          creator.address
+        )
+
+      tx = await visibilityServices
+        .connect(user2)
+        .validateServiceExecution(
+          serviceNoncePaymentVisibilityETH,
+          executionNonceServiceVisibilityETH
+        )
+      await tx.wait()
+      const [state] = await visibilityServices.getServiceExecution(
+        serviceNoncePaymentVisibilityETH,
+        executionNonceServiceVisibilityETH
+      )
+
+      expect(state).to.equal(5) // VALIDATED
+
+      const contractBalanceAfter = await provider.getBalance(
+        await visibilityServices.getAddress()
+      )
+      const creatorBalanceAfter = await provider.getBalance(creator.address)
+      const treasuryBalanceAfter = await provider.getBalance(treasury.address)
+      const buyBackPoolAfter =
+        await visibilityServices.getVisibilityBuyBackEthBalance(visibilityId1)
+      const creditsCreatorBalanceAfter =
+        await visibilityCredits.getVisibilityCreditBalance(
+          visibilityId1,
+          creator.address
+        )
+
+      const FEE_DENOMINATOR = await visibilityServices.FEE_DENOMINATOR()
+      const PROTOCOL_FEE = await visibilityServices.PROTOCOL_FEE()
+      const buyBackShare = (
+        await visibilityServices.getService(serviceNoncePaymentVisibilityETH)
+      )[7]
+      const creatorShare = FEE_DENOMINATOR - PROTOCOL_FEE - buyBackShare
+
+      const expectedProtocolFee =
+        (weiCostAmount * PROTOCOL_FEE) / FEE_DENOMINATOR
+      const expectedCreatorFee =
+        (weiCostAmount * creatorShare) / FEE_DENOMINATOR
+      const expectedBuyBackFee =
+        (weiCostAmount * buyBackShare) / FEE_DENOMINATOR
+
+      expect(contractBalanceBefore - contractBalanceAfter).to.be.equal(
+        weiCostAmount - expectedCreatorFee - expectedProtocolFee
+      )
+      expect(creatorBalanceAfter - creatorBalanceBefore).to.be.equal(
+        expectedCreatorFee
+      )
+      expect(treasuryBalanceAfter - treasuryBalanceBefore).to.be.equal(
+        expectedProtocolFee
+      )
+      expect(buyBackPoolAfter - buyBackPoolBefore).to.be.equal(
+        expectedBuyBackFee
+      )
+      expect(
+        creditsCreatorBalanceAfter - creditsCreatorBalanceBefore
+      ).to.be.equal(0)
+    })
+
+    it('Should resolve a dispute and refund correctly', async function () {
+      await loadFixture(deployAcceptedEthServiceFixture)
+
+      const contractBalanceBefore = await provider.getBalance(
+        await visibilityServices.getAddress()
+      )
+      const creatorBalanceBefore = await provider.getBalance(creator.address)
+      const treasuryBalanceBefore = await provider.getBalance(treasury.address)
+      const buyBackPoolBefore =
+        await visibilityServices.getVisibilityBuyBackEthBalance(visibilityId1)
+
+      const user1CreditsBalanceBefore =
+        await visibilityCredits.getVisibilityCreditBalance(
+          visibilityId1,
+          user1.address
+        )
+
+      tx = await visibilityServices
+        .connect(user1)
+        .disputeServiceExecution(
+          serviceNoncePaymentVisibilityETH,
+          executionNonceServiceVisibilityETH,
+          'Dispute Data'
+        )
+      await tx.wait()
+      tx = await visibilityServices
+        .connect(disputeResolver)
+        .resolveServiceExecution(
+          serviceNoncePaymentVisibilityETH,
+          executionNonceServiceVisibilityETH,
+          true,
+          'Resolved with Refund'
+        )
+      await tx.wait()
+
+      const [state] = await visibilityServices.getServiceExecution(
+        serviceNoncePaymentVisibilityETH,
+        executionNonceServiceVisibilityETH
+      )
+      expect(state).to.equal(4) // REFUNDED
+
+      const user1CreditsBalanceAfter =
+        await visibilityCredits.getVisibilityCreditBalance(
+          visibilityId1,
+          user1.address
+        )
+
+      const creatorBalanceAfter = await provider.getBalance(creator.address)
+      const treasuryBalanceAfter = await provider.getBalance(treasury.address)
+      const buyBackPoolAfter =
+        await visibilityServices.getVisibilityBuyBackEthBalance(visibilityId1)
+      const contractBalanceAfter = await provider.getBalance(
+        await visibilityServices.getAddress()
+      )
+
+      expect(contractBalanceBefore - contractBalanceAfter).to.be.equal(
+        weiCostAmount
+      )
+      expect(creatorBalanceAfter - creatorBalanceBefore).to.be.equal(0)
+      expect(treasuryBalanceAfter - treasuryBalanceBefore).to.be.equal(0)
+      expect(buyBackPoolAfter - buyBackPoolBefore).to.be.equal(0)
+      expect(user1CreditsBalanceAfter - user1CreditsBalanceBefore).to.be.equal(
+        0
+      )
+    })
+
+    it('Should resolve a dispute with validation', async function () {
+      await loadFixture(deployAcceptedEthServiceFixture)
+
+      const contractBalanceBefore = await provider.getBalance(
+        await visibilityServices.getAddress()
+      )
+      const creatorBalanceBefore = await provider.getBalance(creator.address)
+      const treasuryBalanceBefore = await provider.getBalance(treasury.address)
+      const buyBackPoolBefore =
+        await visibilityServices.getVisibilityBuyBackEthBalance(visibilityId1)
+      const creditsCreatorBalanceBefore =
+        await visibilityCredits.getVisibilityCreditBalance(
+          visibilityId1,
+          creator.address
+        )
+
+      tx = await visibilityServices
+        .connect(user1)
+        .disputeServiceExecution(
+          serviceNoncePaymentVisibilityETH,
+          executionNonceServiceVisibilityETH,
+          'Dispute Data'
+        )
+      await tx.wait()
+
+      tx = await visibilityServices
+        .connect(disputeResolver)
+        .resolveServiceExecution(
+          serviceNoncePaymentVisibilityETH,
+          executionNonceServiceVisibilityETH,
+          false,
+          'Resolved without Refund'
+        )
+      await tx.wait()
+
+      const [state] = await visibilityServices.getServiceExecution(
+        serviceNoncePaymentVisibilityETH,
+        executionNonceServiceVisibilityETH
+      )
+
+      expect(state).to.equal(5) // VALIDATED
+
+      const contractBalanceAfter = await provider.getBalance(
+        await visibilityServices.getAddress()
+      )
+      const creatorBalanceAfter = await provider.getBalance(creator.address)
+      const treasuryBalanceAfter = await provider.getBalance(treasury.address)
+      const buyBackPoolAfter =
+        await visibilityServices.getVisibilityBuyBackEthBalance(visibilityId1)
+      const creditsCreatorBalanceAfter =
+        await visibilityCredits.getVisibilityCreditBalance(
+          visibilityId1,
+          creator.address
+        )
+
+      const FEE_DENOMINATOR = await visibilityServices.FEE_DENOMINATOR()
+      const PROTOCOL_FEE = await visibilityServices.PROTOCOL_FEE()
+      const buyBackShare = (
+        await visibilityServices.getService(serviceNoncePaymentVisibilityETH)
+      )[7]
+      const creatorShare = FEE_DENOMINATOR - PROTOCOL_FEE - buyBackShare
+
+      const expectedProtocolFee =
+        (weiCostAmount * PROTOCOL_FEE) / FEE_DENOMINATOR
+      const expectedCreatorFee =
+        (weiCostAmount * creatorShare) / FEE_DENOMINATOR
+      const expectedBuyBackFee =
+        (weiCostAmount * buyBackShare) / FEE_DENOMINATOR
+
+      expect(contractBalanceBefore - contractBalanceAfter).to.be.equal(
+        weiCostAmount - expectedCreatorFee - expectedProtocolFee
+      )
+      expect(creatorBalanceAfter - creatorBalanceBefore).to.be.equal(
+        expectedCreatorFee
+      )
+      expect(treasuryBalanceAfter - treasuryBalanceBefore).to.be.equal(
+        expectedProtocolFee
+      )
+      expect(buyBackPoolAfter - buyBackPoolBefore).to.be.equal(
+        expectedBuyBackFee
+      )
+      expect(
+        creditsCreatorBalanceAfter - creditsCreatorBalanceBefore
+      ).to.be.equal(0)
+    })
+  })
+
   describe('Multiple Executions per Service', function () {
     it('Should allow user to create multiple requests, each with its own state', async () => {
       await loadFixture(deployFixture)
@@ -1060,7 +1706,7 @@ describe('VisibilityServices', function () {
 
       tx = await visibilityServices
         .connect(creator)
-        .createService('x-post', visibilityId1, 10)
+        .createService(serviceTypeVC, visibilityId1, 10)
       await tx.wait()
 
       tx = await visibilityCredits

@@ -220,21 +220,11 @@ interface IVisibilityServices {
             string memory serviceType,
             string memory visibilityId,
             uint256 creditsCostAmount,
-            uint256 executionsNonce
-        );
-
-    function getServiceWithEthPayment(
-        uint256 serviceNonce
-    )
-        external
-        view
-        returns (
-            bool enabled,
-            string memory serviceType,
-            string memory visibilityId,
-            uint256 buyBackCreditsShare,
+            uint256 executionsNonce,
+            address originator,
             uint256 weiCostAmount,
-            uint256 executionsNonce
+            uint256 buyBackCreditsShare,
+            PaymentType paymentType
         );
 
     function getServiceExecution(
