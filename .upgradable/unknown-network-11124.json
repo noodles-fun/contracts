@@ -706,6 +706,245 @@
           ]
         }
       }
+    },
+    "83cc2b36ae64ff5996a5d1b7a48883a6c926f9867ff9c8a368a5b69c218f21af": {
+      "address": "0x77D44b295254B89dDC30Ce5Eed149b447e16850A",
+      "txHash": "0x09c8bfabbd29ee3bfcaab9085c2d0c91bf4dc29ab5146ddc44326636d9140f23",
+      "layout": {
+        "solcVersion": "0.8.26",
+        "storage": [],
+        "types": {
+          "t_contract(IVisibilityCredits)12329": {
+            "label": "contract IVisibilityCredits"
+          },
+          "t_uint256": {
+            "label": "uint256"
+          },
+          "t_mapping(t_uint256,t_struct(Service)12375_storage)": {
+            "label": "mapping(uint256 => struct IVisibilityServices.Service)"
+          },
+          "t_struct(Service)12375_storage": {
+            "label": "struct IVisibilityServices.Service",
+            "members": [
+              {
+                "label": "enabled",
+                "type": "t_bool"
+              },
+              {
+                "label": "serviceType",
+                "type": "t_string_storage"
+              },
+              {
+                "label": "visibilityId",
+                "type": "t_string_storage"
+              },
+              {
+                "label": "creditsCostAmount",
+                "type": "t_uint256"
+              },
+              {
+                "label": "executionsNonce",
+                "type": "t_uint256"
+              },
+              {
+                "label": "executions",
+                "type": "t_mapping(t_uint256,t_struct(Execution)12349_storage)"
+              },
+              {
+                "label": "originator",
+                "type": "t_address"
+              },
+              {
+                "label": "weiCostAmount",
+                "type": "t_uint256"
+              },
+              {
+                "label": "buyBackCreditsShare",
+                "type": "t_uint256"
+              },
+              {
+                "label": "paymentType",
+                "type": "t_enum(PaymentType)12334"
+              }
+            ]
+          },
+          "t_bool": {
+            "label": "bool"
+          },
+          "t_string_storage": {
+            "label": "string"
+          },
+          "t_mapping(t_uint256,t_struct(Execution)12349_storage)": {
+            "label": "mapping(uint256 => struct IVisibilityServices.Execution)"
+          },
+          "t_address": {
+            "label": "address"
+          },
+          "t_enum(PaymentType)12334": {
+            "label": "enum IVisibilityServices.PaymentType",
+            "members": [
+              "VISIBILITY_CREDITS",
+              "ETH"
+            ]
+          },
+          "t_struct(Execution)12349_storage": {
+            "label": "struct IVisibilityServices.Execution",
+            "members": [
+              {
+                "label": "state",
+                "type": "t_enum(ExecutionState)12341"
+              },
+              {
+                "label": "requester",
+                "type": "t_address"
+              },
+              {
+                "label": "lastUpdateTimestamp",
+                "type": "t_uint256"
+              }
+            ]
+          },
+          "t_enum(ExecutionState)12341": {
+            "label": "enum IVisibilityServices.ExecutionState",
+            "members": [
+              "UNINITIALIZED",
+              "REQUESTED",
+              "ACCEPTED",
+              "DISPUTED",
+              "REFUNDED",
+              "VALIDATED"
+            ]
+          },
+          "t_struct(BuyBackPools)12380_storage": {
+            "label": "struct IVisibilityServices.BuyBackPools",
+            "members": [
+              {
+                "label": "buyBackEthBalances",
+                "type": "t_mapping(t_string_memory_ptr,t_uint256)"
+              }
+            ]
+          },
+          "t_mapping(t_string_memory_ptr,t_uint256)": {
+            "label": "mapping(string => uint256)"
+          },
+          "t_uint48": {
+            "label": "uint48"
+          },
+          "t_mapping(t_bytes32,t_struct(RoleData)25_storage)": {
+            "label": "mapping(bytes32 => struct AccessControlUpgradeable.RoleData)"
+          },
+          "t_bytes32": {
+            "label": "bytes32"
+          },
+          "t_struct(RoleData)25_storage": {
+            "label": "struct AccessControlUpgradeable.RoleData",
+            "members": [
+              {
+                "label": "hasRole",
+                "type": "t_mapping(t_address,t_bool)"
+              },
+              {
+                "label": "adminRole",
+                "type": "t_bytes32"
+              }
+            ]
+          },
+          "t_mapping(t_address,t_bool)": {
+            "label": "mapping(address => bool)"
+          },
+          "t_uint64": {
+            "label": "uint64"
+          }
+        },
+        "namespaces": {
+          "erc7201:noodles.VisibilityServices": [
+            {
+              "contract": "VisibilityServices",
+              "label": "visibilityCredits",
+              "type": "t_contract(IVisibilityCredits)12329",
+              "src": "contracts/VisibilityServices.sol:38"
+            },
+            {
+              "contract": "VisibilityServices",
+              "label": "servicesNonce",
+              "type": "t_uint256",
+              "src": "contracts/VisibilityServices.sol:39"
+            },
+            {
+              "contract": "VisibilityServices",
+              "label": "services",
+              "type": "t_mapping(t_uint256,t_struct(Service)12375_storage)",
+              "src": "contracts/VisibilityServices.sol:40"
+            },
+            {
+              "contract": "VisibilityServices",
+              "label": "buyBackPools",
+              "type": "t_struct(BuyBackPools)12380_storage",
+              "src": "contracts/VisibilityServices.sol:41"
+            }
+          ],
+          "erc7201:openzeppelin.storage.AccessControlDefaultAdminRules": [
+            {
+              "contract": "AccessControlDefaultAdminRulesUpgradeable",
+              "label": "_pendingDefaultAdmin",
+              "type": "t_address",
+              "src": "@openzeppelin/contracts-upgradeable/access/extensions/AccessControlDefaultAdminRulesUpgradeable.sol:45"
+            },
+            {
+              "contract": "AccessControlDefaultAdminRulesUpgradeable",
+              "label": "_pendingDefaultAdminSchedule",
+              "type": "t_uint48",
+              "src": "@openzeppelin/contracts-upgradeable/access/extensions/AccessControlDefaultAdminRulesUpgradeable.sol:46"
+            },
+            {
+              "contract": "AccessControlDefaultAdminRulesUpgradeable",
+              "label": "_currentDelay",
+              "type": "t_uint48",
+              "src": "@openzeppelin/contracts-upgradeable/access/extensions/AccessControlDefaultAdminRulesUpgradeable.sol:48"
+            },
+            {
+              "contract": "AccessControlDefaultAdminRulesUpgradeable",
+              "label": "_currentDefaultAdmin",
+              "type": "t_address",
+              "src": "@openzeppelin/contracts-upgradeable/access/extensions/AccessControlDefaultAdminRulesUpgradeable.sol:49"
+            },
+            {
+              "contract": "AccessControlDefaultAdminRulesUpgradeable",
+              "label": "_pendingDelay",
+              "type": "t_uint48",
+              "src": "@openzeppelin/contracts-upgradeable/access/extensions/AccessControlDefaultAdminRulesUpgradeable.sol:52"
+            },
+            {
+              "contract": "AccessControlDefaultAdminRulesUpgradeable",
+              "label": "_pendingDelaySchedule",
+              "type": "t_uint48",
+              "src": "@openzeppelin/contracts-upgradeable/access/extensions/AccessControlDefaultAdminRulesUpgradeable.sol:53"
+            }
+          ],
+          "erc7201:openzeppelin.storage.AccessControl": [
+            {
+              "contract": "AccessControlUpgradeable",
+              "label": "_roles",
+              "type": "t_mapping(t_bytes32,t_struct(RoleData)25_storage)",
+              "src": "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol:61"
+            }
+          ],
+          "erc7201:openzeppelin.storage.Initializable": [
+            {
+              "contract": "Initializable",
+              "label": "_initialized",
+              "type": "t_uint64",
+              "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:69"
+            },
+            {
+              "contract": "Initializable",
+              "label": "_initializing",
+              "type": "t_bool",
+              "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:73"
+            }
+          ]
+        }
+      }
     }
   }
 }

@@ -138,7 +138,7 @@ export default async function (hre: HardhatRuntimeEnvironment) {
     process.env.ADMIN_ADDRESS,
     deployer.zkWallet
   )
-    */
+   */
   await hre.zkUpgrades.admin.transferProxyAdminOwnership(
     visibilityServicesProxyAddr,
     process.env.ADMIN_ADDRESS,
