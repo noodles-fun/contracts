@@ -739,7 +739,6 @@ contract VisibilityServices is
             Address.sendValue(payable(protocolTreasury), protocolAmount);
             Address.sendValue(payable(creator), creatorAmount);
 
-            /// @dev Reentrancy from the creator protection
             ////@dev We want the creator to wait the end of this execution before being able to buy back credits
             $.buyBackPools.buyBackEthBalances[visibilityId] += buyBackAmount;
 

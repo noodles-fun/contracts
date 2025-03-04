@@ -138,12 +138,6 @@ interface IVisibilityServices {
     error QuoteSlippage();
     error UnauthorizedExecutionAction();
 
-    function buyBack(
-        string memory visibilityId,
-        uint256 creditsAmount,
-        uint256 maxWeiAmount
-    ) external;
-
     function createService(
         string memory serviceType,
         string memory visibilityId,
@@ -160,13 +154,6 @@ interface IVisibilityServices {
     function createAndUpdateFromService(
         uint256 serviceNonce,
         uint256 costAmount
-    ) external;
-
-    function updateService(uint256 serviceNonce, bool enabled) external;
-
-    function updateBuyBackCreditsShare(
-        uint256 serviceNonce,
-        uint256 buyBackCreditsShare
     ) external;
 
     function requestServiceExecution(
@@ -208,6 +195,19 @@ interface IVisibilityServices {
         uint256 executionNonce,
         bool refund,
         string calldata resolveData
+    ) external;
+
+    function updateService(uint256 serviceNonce, bool enabled) external;
+
+    function updateBuyBackCreditsShare(
+        uint256 serviceNonce,
+        uint256 buyBackCreditsShare
+    ) external;
+
+    function buyBack(
+        string memory visibilityId,
+        uint256 creditsAmount,
+        uint256 maxWeiAmount
     ) external;
 
     function getService(

@@ -163,6 +163,18 @@ describe('VisibilityServices', function () {
     await tx.wait()
   }
 
+  async function deployValidatedEthServiceFixture() {
+    await loadFixture(deployAcceptedEthServiceFixture)
+
+    tx = await visibilityServices
+      .connect(user1)
+      .validateServiceExecution(
+        serviceNoncePaymentVisibilityETH,
+        executionNonceServiceVisibilityETH
+      )
+    await tx.wait()
+  }
+
   describe('Deployment and Initial Setup', function () {
     it('Should deploy contracts correctly and set initial values', async function () {
       await loadFixture(deployFixture)
@@ -238,6 +250,27 @@ describe('VisibilityServices', function () {
       expect(_weiCostAmount).to.equal(weiCostAmount)
       expect(_buyBackCreditsShare).to.equal(buybackShare)
       expect(_paymentType).to.equal(1)
+
+      tx = await visibilityServices
+        .connect(creator)
+        .createServiceWithETH(
+          serviceTypeETH,
+          visibilityId1,
+          buybackShare,
+          weiCostAmount
+        )
+      await tx.wait()
+
+      expect(tx)
+        .to.emit(visibilityServices, 'ServiceWithETHCreated')
+        .withArgs(
+          creator.address,
+          newServiceNonce,
+          serviceTypeETH,
+          visibilityId1,
+          buybackShare,
+          weiCostAmount
+        )
     })
 
     it('Should allow anyone to create any service', async function () {
@@ -260,6 +293,24 @@ describe('VisibilityServices', function () {
         )
     })
 
+    it('Should revert if trying to create a service (ETH payment) with invalid buy back share value', async function () {
+      await loadFixture(deployFixture)
+
+      await expect(
+        visibilityServices
+          .connect(user1)
+          .createServiceWithETH(
+            serviceTypeETH,
+            visibilityId1,
+            999_999,
+            weiCostAmount
+          )
+      ).to.be.revertedWithCustomError(
+        visibilityServices,
+        'InvalidBuyBackCreditsShare'
+      )
+    })
+
     it('Should update a service successfully', async function () {
       await loadFixture(deployFixture)
 
@@ -278,6 +329,10 @@ describe('VisibilityServices', function () {
       const [enabledETH] = await visibilityServices.getService(
         serviceNoncePaymentVisibilityETH
       )
+
+      expect(tx)
+        .to.emit(visibilityServices, 'ServiceUpdated')
+        .withArgs(serviceNoncePaymentVisibilityETH, false)
 
       expect(enabledETH).to.equal(false)
     })
@@ -384,7 +439,7 @@ describe('VisibilityServices', function () {
       ).to.be.revertedWithCustomError(visibilityServices, 'InvalidOriginator')
     })
 
-    it('Should revert if non-creator tries to create and update from a service', async function () {
+    it('Should revert if non-originator tries to create and update from a service', async function () {
       await loadFixture(deployFixture)
 
       tx = await visibilityServices
@@ -406,7 +461,7 @@ describe('VisibilityServices', function () {
       ).to.be.revertedWithCustomError(visibilityServices, 'InvalidOriginator')
     })
 
-    it('Should revert with invalid service nonce', async function () {
+    it('Should revert if update with invalid service nonce', async function () {
       await loadFixture(deployFixture)
 
       await expect(
@@ -437,6 +492,29 @@ describe('VisibilityServices', function () {
         await visibilityServices.getService(serviceNoncePaymentVisibilityETH)
       )[7]
       expect(_newBuyBackShare).to.equal(newBuyBackShare)
+    })
+
+    it('Should revert if creator tries to update with invalid buyback share value', async function () {
+      await loadFixture(deployFixture)
+
+      tx = await visibilityServices
+        .connect(user1)
+        .createServiceWithETH(
+          serviceTypeETH,
+          visibilityId1,
+          buybackShare,
+          weiCostAmount
+        )
+      await tx.wait()
+
+      await expect(
+        visibilityServices
+          .connect(user1)
+          .updateBuyBackCreditsShare(newServiceNonce, 999_999)
+      ).to.be.revertedWithCustomError(
+        visibilityServices,
+        'InvalidBuyBackCreditsShare'
+      )
     })
 
     it('Should revert if non-creator tries to update buyback share value', async function () {
@@ -498,6 +576,15 @@ describe('VisibilityServices', function () {
           'Request Data'
         )
       await tx.wait()
+
+      expect(tx)
+        .emit(visibilityServices, 'ServiceExecutionRequested')
+        .withArgs(
+          serviceNoncePaymentVisibilityCredits,
+          executionNonceServiceVisibilityCredits,
+          user1.address,
+          'Request Data'
+        )
 
       const [state, requester] = await visibilityServices.getServiceExecution(
         serviceNoncePaymentVisibilityCredits,
@@ -747,6 +834,15 @@ describe('VisibilityServices', function () {
         )
       await tx.wait()
 
+      expect(tx)
+        .to.emit(visibilityServices, 'ServiceExecutionAccepted')
+        .withArgs(
+          serviceNoncePaymentVisibilityCredits,
+          executionNonceServiceVisibilityCredits,
+          creator.address,
+          'Response Data'
+        )
+
       const [state] = await visibilityServices.getServiceExecution(
         serviceNoncePaymentVisibilityCredits,
         executionNonceServiceVisibilityCredits
@@ -869,6 +965,13 @@ describe('VisibilityServices', function () {
         )
       await tx.wait()
 
+      expect(tx)
+        .to.emit(visibilityServices, 'ServiceExecutionValidated')
+        .withArgs(
+          serviceNoncePaymentVisibilityCredits,
+          executionNonceServiceVisibilityCredits
+        )
+
       const [state] = await visibilityServices.getServiceExecution(
         serviceNoncePaymentVisibilityCredits,
         executionNonceServiceVisibilityCredits
@@ -911,6 +1014,14 @@ describe('VisibilityServices', function () {
           executionNonceServiceVisibilityCredits
         )
       await tx.wait()
+
+      expect(tx)
+        .to.emit(visibilityServices, 'ServiceExecutionValidated')
+        .withArgs(
+          serviceNoncePaymentVisibilityCredits,
+          executionNonceServiceVisibilityCredits
+        )
+
       const [state] = await visibilityServices.getServiceExecution(
         serviceNoncePaymentVisibilityCredits,
         executionNonceServiceVisibilityCredits
@@ -991,6 +1102,15 @@ describe('VisibilityServices', function () {
         )
       await tx.wait()
 
+      expect(tx)
+        .to.emit(visibilityServices, 'ServiceExecutionDisputed')
+        .withArgs(
+          serviceNoncePaymentVisibilityCredits,
+          executionNonceServiceVisibilityCredits,
+          user1.address,
+          'Dispute Data'
+        )
+
       const [state] = await visibilityServices.getServiceExecution(
         serviceNoncePaymentVisibilityCredits,
         executionNonceServiceVisibilityCredits
@@ -1066,6 +1186,15 @@ describe('VisibilityServices', function () {
         )
       await tx.wait()
 
+      expect(tx)
+        .to.emit(visibilityServices, 'ServiceExecutionResolved')
+        .withArgs(
+          serviceNoncePaymentVisibilityCredits,
+          executionNonceServiceVisibilityCredits,
+          true,
+          'Resolved with Refund'
+        )
+
       const [state] = await visibilityServices.getServiceExecution(
         serviceNoncePaymentVisibilityCredits,
         executionNonceServiceVisibilityCredits
@@ -1125,6 +1254,15 @@ describe('VisibilityServices', function () {
           'Resolved without Refund'
         )
       await tx.wait()
+
+      expect(tx)
+        .to.emit(visibilityServices, 'ServiceExecutionResolved')
+        .withArgs(
+          serviceNoncePaymentVisibilityCredits,
+          executionNonceServiceVisibilityCredits,
+          false,
+          'Resolved without Refund'
+        )
 
       const [state] = await visibilityServices.getServiceExecution(
         serviceNoncePaymentVisibilityCredits,
@@ -1402,6 +1540,14 @@ describe('VisibilityServices', function () {
           executionNonceServiceVisibilityETH
         )
       await tx.wait()
+
+      expect(tx)
+        .to.emit(visibilityServices, 'ServiceExecutionValidated')
+        .withArgs(
+          serviceNoncePaymentVisibilityETH,
+          executionNonceServiceVisibilityETH
+        )
+
       const [state] = await visibilityServices.getServiceExecution(
         serviceNoncePaymentVisibilityETH,
         executionNonceServiceVisibilityETH
@@ -1435,6 +1581,10 @@ describe('VisibilityServices', function () {
         (weiCostAmount * creatorShare) / FEE_DENOMINATOR
       const expectedBuyBackFee =
         (weiCostAmount * buyBackShare) / FEE_DENOMINATOR
+
+      expect(tx)
+        .to.emit(visibilityServices, 'BuyBackPoolUpdated')
+        .withArgs(visibilityId1, false, expectedBuyBackFee)
 
       expect(contractBalanceBefore - contractBalanceAfter).to.be.equal(
         weiCostAmount - expectedCreatorFee - expectedProtocolFee
@@ -1588,6 +1738,10 @@ describe('VisibilityServices', function () {
       const expectedBuyBackFee =
         (weiCostAmount * buyBackShare) / FEE_DENOMINATOR
 
+      expect(tx)
+        .to.emit(visibilityServices, 'BuyBackPoolUpdated')
+        .withArgs(visibilityId1, false, expectedBuyBackFee)
+
       expect(contractBalanceBefore - contractBalanceAfter).to.be.equal(
         weiCostAmount - expectedCreatorFee - expectedProtocolFee
       )
@@ -1603,6 +1757,128 @@ describe('VisibilityServices', function () {
       expect(
         creditsCreatorBalanceAfter - creditsCreatorBalanceBefore
       ).to.be.equal(0)
+    })
+  })
+
+  describe('Buy back', function () {
+    it('Should allow creator to buy back Visbility Credits', async function () {
+      await loadFixture(deployValidatedEthServiceFixture)
+
+      const boughtCreditsBefore =
+        await visibilityCredits.getVisibilityCreditBalance(
+          visibilityId1,
+          await visibilityServices.getAddress()
+        )
+      const contractBalanceBefore = await provider.getBalance(
+        await visibilityServices.getAddress()
+      )
+
+      const buyBackBalanceBefore =
+        await visibilityServices.getVisibilityBuyBackEthBalance(visibilityId1)
+
+      const creditsBuyBackAmount = 100
+
+      const [totalCost] = await visibilityCredits.buyCostWithFees(
+        visibilityId1,
+        creditsBuyBackAmount,
+        await visibilityServices.getAddress(),
+        ZeroAddress
+      )
+
+      expect(totalCost).to.be.lessThan(buyBackBalanceBefore)
+
+      tx = await visibilityServices
+        .connect(creator)
+        .buyBack(visibilityId1, creditsBuyBackAmount, totalCost)
+      await tx.wait()
+
+      expect(tx)
+        .to.emit(visibilityServices, 'BuyBack')
+        .withArgs(visibilityId1, totalCost, creditsBuyBackAmount)
+
+      expect(tx)
+        .to.emit(visibilityServices, 'BuyBackPoolUpdated')
+        .withArgs(visibilityId1, true, totalCost)
+
+      const boughtCreditsAfter =
+        await visibilityCredits.getVisibilityCreditBalance(
+          visibilityId1,
+          await visibilityServices.getAddress()
+        )
+      const contractBalanceAfter = await provider.getBalance(
+        await visibilityServices.getAddress()
+      )
+      const buyBackBalanceAfter =
+        await visibilityServices.getVisibilityBuyBackEthBalance(visibilityId1)
+
+      expect(boughtCreditsAfter - boughtCreditsBefore).to.be.equal(
+        creditsBuyBackAmount
+      )
+
+      expect(contractBalanceBefore - contractBalanceAfter).to.be.equal(
+        totalCost
+      )
+
+      expect(buyBackBalanceBefore - buyBackBalanceAfter).to.be.equal(totalCost)
+    })
+
+    it('Should revert on buy back front run', async function () {
+      await loadFixture(deployValidatedEthServiceFixture)
+
+      const creditsBuyBackAmount = 100
+
+      const [totalCost] = await visibilityCredits.buyCostWithFees(
+        visibilityId1,
+        creditsBuyBackAmount,
+        await visibilityServices.getAddress(),
+        ZeroAddress
+      )
+
+      tx = await visibilityCredits
+        .connect(user2)
+        .buyCredits(visibilityId1, creditsBuyBackAmount, ZeroAddress, {
+          value: totalCost
+        })
+
+      await tx.wait()
+
+      await expect(
+        visibilityServices
+          .connect(creator)
+          .buyBack(visibilityId1, creditsBuyBackAmount, totalCost)
+      ).to.be.revertedWithCustomError(visibilityServices, 'QuoteSlippage')
+    })
+
+    it('Should revert on insufficient buy back balance', async function () {
+      await loadFixture(deployValidatedEthServiceFixture)
+
+      const creditsBuyBackAmount = 10000000
+
+      const buybackBalance =
+        await visibilityServices.getVisibilityBuyBackEthBalance(visibilityId1)
+
+      const [totalCost] = await visibilityCredits.buyCostWithFees(
+        visibilityId1,
+        creditsBuyBackAmount,
+        await visibilityServices.getAddress(),
+        ZeroAddress
+      )
+
+      expect(buybackBalance).to.be.lessThan(totalCost)
+
+      await expect(
+        visibilityServices
+          .connect(creator)
+          .buyBack(visibilityId1, creditsBuyBackAmount, totalCost)
+      ).to.be.revertedWithCustomError(visibilityServices, 'InsufficientValue')
+    })
+
+    it('Should revert if buy back is not requested by visibility creator', async function () {
+      await loadFixture(deployValidatedEthServiceFixture)
+
+      await expect(
+        visibilityServices.connect(user1).buyBack(visibilityId1, 100, 100)
+      ).to.be.revertedWithCustomError(visibilityServices, 'InvalidCreator')
     })
   })
 
