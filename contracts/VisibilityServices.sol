@@ -742,6 +742,12 @@ contract VisibilityServices is
             ////@dev We want the creator to wait the end of this execution before being able to buy back credits
             $.buyBackPools.buyBackEthBalances[visibilityId] += buyBackAmount;
 
+            emit ServiceExecutionEthPayment(
+                serviceNonce,
+                protocolAmount,
+                creatorAmount,
+                buyBackAmount
+            );
             emit BuyBackPoolUpdated(visibilityId, false, buyBackAmount);
         } else {
             revert InvalidPaymentType();

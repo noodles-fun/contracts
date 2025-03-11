@@ -261,7 +261,7 @@ describe('VisibilityServices', function () {
         )
       await tx.wait()
 
-      expect(tx)
+      await expect(tx)
         .to.emit(visibilityServices, 'ServiceWithETHCreated')
         .withArgs(
           creator.address,
@@ -282,12 +282,12 @@ describe('VisibilityServices', function () {
 
       await tx.wait()
 
-      expect(tx)
+      await expect(tx)
         .to.emit(visibilityServices, 'ServiceCreated')
         .withArgs(
           user1,
           newServiceNonce,
-          serviceTypeVC,
+          'test',
           visibilityId1,
           creditsCostAmount
         )
@@ -330,7 +330,7 @@ describe('VisibilityServices', function () {
         serviceNoncePaymentVisibilityETH
       )
 
-      expect(tx)
+      await expect(tx)
         .to.emit(visibilityServices, 'ServiceUpdated')
         .withArgs(serviceNoncePaymentVisibilityETH, false)
 
@@ -484,7 +484,7 @@ describe('VisibilityServices', function () {
         )
       await tx.wait()
 
-      expect(tx)
+      await expect(tx)
         .to.emit(visibilityServices, 'ServiceBuyBackUpdated')
         .withArgs(serviceNoncePaymentVisibilityETH, newBuyBackShare)
 
@@ -577,7 +577,7 @@ describe('VisibilityServices', function () {
         )
       await tx.wait()
 
-      expect(tx)
+      await expect(tx)
         .emit(visibilityServices, 'ServiceExecutionRequested')
         .withArgs(
           serviceNoncePaymentVisibilityCredits,
@@ -671,7 +671,7 @@ describe('VisibilityServices', function () {
         )
       await tx.wait()
 
-      expect(tx)
+      await expect(tx)
         .to.emit(visibilityServices, 'ServiceExecutionCanceled')
         .withArgs(
           serviceNoncePaymentVisibilityCredits,
@@ -718,7 +718,7 @@ describe('VisibilityServices', function () {
         )
       await tx.wait()
 
-      expect(tx)
+      await expect(tx)
         .to.emit(visibilityServices, 'ServiceExecutionCanceled')
         .withArgs(
           serviceNoncePaymentVisibilityCredits,
@@ -778,7 +778,7 @@ describe('VisibilityServices', function () {
           'info Data3'
         )
 
-      expect(tx)
+      await expect(tx)
         .to.emit(visibilityServices, 'ServiceExecutionInformation')
         .withArgs(
           serviceNoncePaymentVisibilityCredits,
@@ -834,12 +834,11 @@ describe('VisibilityServices', function () {
         )
       await tx.wait()
 
-      expect(tx)
+      await expect(tx)
         .to.emit(visibilityServices, 'ServiceExecutionAccepted')
         .withArgs(
           serviceNoncePaymentVisibilityCredits,
           executionNonceServiceVisibilityCredits,
-          creator.address,
           'Response Data'
         )
 
@@ -965,7 +964,7 @@ describe('VisibilityServices', function () {
         )
       await tx.wait()
 
-      expect(tx)
+      await expect(tx)
         .to.emit(visibilityServices, 'ServiceExecutionValidated')
         .withArgs(
           serviceNoncePaymentVisibilityCredits,
@@ -1015,7 +1014,7 @@ describe('VisibilityServices', function () {
         )
       await tx.wait()
 
-      expect(tx)
+      await expect(tx)
         .to.emit(visibilityServices, 'ServiceExecutionValidated')
         .withArgs(
           serviceNoncePaymentVisibilityCredits,
@@ -1102,12 +1101,11 @@ describe('VisibilityServices', function () {
         )
       await tx.wait()
 
-      expect(tx)
+      await expect(tx)
         .to.emit(visibilityServices, 'ServiceExecutionDisputed')
         .withArgs(
           serviceNoncePaymentVisibilityCredits,
           executionNonceServiceVisibilityCredits,
-          user1.address,
           'Dispute Data'
         )
 
@@ -1186,7 +1184,7 @@ describe('VisibilityServices', function () {
         )
       await tx.wait()
 
-      expect(tx)
+      await expect(tx)
         .to.emit(visibilityServices, 'ServiceExecutionResolved')
         .withArgs(
           serviceNoncePaymentVisibilityCredits,
@@ -1255,7 +1253,7 @@ describe('VisibilityServices', function () {
         )
       await tx.wait()
 
-      expect(tx)
+      await expect(tx)
         .to.emit(visibilityServices, 'ServiceExecutionResolved')
         .withArgs(
           serviceNoncePaymentVisibilityCredits,
@@ -1490,7 +1488,7 @@ describe('VisibilityServices', function () {
         )
       await tx.wait()
 
-      expect(tx)
+      await expect(tx)
         .to.emit(visibilityServices, 'ServiceExecutionCanceled')
         .withArgs(
           serviceNoncePaymentVisibilityETH,
@@ -1541,7 +1539,7 @@ describe('VisibilityServices', function () {
         )
       await tx.wait()
 
-      expect(tx)
+      await expect(tx)
         .to.emit(visibilityServices, 'ServiceExecutionValidated')
         .withArgs(
           serviceNoncePaymentVisibilityETH,
@@ -1582,7 +1580,7 @@ describe('VisibilityServices', function () {
       const expectedBuyBackFee =
         (weiCostAmount * buyBackShare) / FEE_DENOMINATOR
 
-      expect(tx)
+      await expect(tx)
         .to.emit(visibilityServices, 'BuyBackPoolUpdated')
         .withArgs(visibilityId1, false, expectedBuyBackFee)
 
@@ -1738,9 +1736,18 @@ describe('VisibilityServices', function () {
       const expectedBuyBackFee =
         (weiCostAmount * buyBackShare) / FEE_DENOMINATOR
 
-      expect(tx)
+      await expect(tx)
         .to.emit(visibilityServices, 'BuyBackPoolUpdated')
         .withArgs(visibilityId1, false, expectedBuyBackFee)
+
+      await expect(tx)
+        .to.emit(visibilityServices, 'ServiceExecutionEthPayment')
+        .withArgs(
+          serviceNoncePaymentVisibilityETH,
+          expectedProtocolFee,
+          expectedCreatorFee,
+          expectedBuyBackFee
+        )
 
       expect(contractBalanceBefore - contractBalanceAfter).to.be.equal(
         weiCostAmount - expectedCreatorFee - expectedProtocolFee
@@ -1792,11 +1799,11 @@ describe('VisibilityServices', function () {
         .buyBack(visibilityId1, creditsBuyBackAmount, totalCost)
       await tx.wait()
 
-      expect(tx)
+      await expect(tx)
         .to.emit(visibilityServices, 'BuyBack')
         .withArgs(visibilityId1, totalCost, creditsBuyBackAmount)
 
-      expect(tx)
+      await expect(tx)
         .to.emit(visibilityServices, 'BuyBackPoolUpdated')
         .withArgs(visibilityId1, true, totalCost)
 
