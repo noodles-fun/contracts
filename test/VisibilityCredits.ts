@@ -3,7 +3,12 @@ import { ContractTransactionResponse, parseEther, ZeroAddress } from 'ethers'
 import { loadFixture } from '@nomicfoundation/hardhat-network-helpers'
 import { Provider, Wallet } from 'zksync-ethers'
 import { VisibilityCredits } from '../typechain-types'
-import { deployProxyContract, getWallets, getProvider } from '../utils'
+import {
+  deployProxyContract,
+  getWallets,
+  getProvider,
+  upgradeProxyContract
+} from '../utils'
 
 describe('VisibilityCredits', function () {
   const visibilityId1 = 'x-807982663000674305' // @LucaNetz on X
@@ -1183,6 +1188,34 @@ describe('VisibilityCredits', function () {
 
       expect(await creditsContract.hasRole(role, user1.address)).to.be.equal(
         false
+      )
+    })
+  })
+
+  describe('Upgrade simulation', function () {
+    it('Should succeed V1 to V2 upgrade', async () => {
+      provider = await getProvider()
+
+      const visibilityCreditsV1 = (await deployProxyContract(
+        'VisibilityCreditsV1',
+        [
+          adminDelay,
+          await admin.getAddress(),
+          await creatorsLinker.getAddress(),
+          await partnersLinker.getAddress(),
+          await treasury.getAddress()
+        ],
+        { wallet: deployer, silent: true }
+      )) as unknown as VisibilityCredits
+
+      await visibilityCreditsV1.waitForDeployment()
+
+      const visibilityCreditsProxyAddr = await visibilityCreditsV1.getAddress()
+
+      await upgradeProxyContract(
+        visibilityCreditsProxyAddr,
+        'VisibilityCredits',
+        { wallet: deployer, silent: true }
       )
     })
   })
