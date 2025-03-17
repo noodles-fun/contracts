@@ -37,8 +37,8 @@ contract VisibilityCredits is
     uint16 public constant CREATOR_FEE = 20_000; // 2% fee to the creator for each trade
     uint16 public constant PROTOCOL_FEE = 30_000; // 3% base fee, should be higher than referrer fee + partner fee + referral bonus fee
     uint16 public constant REFERRER_FEE = 10_000; // 1% fee to the referrer (if any, deduced from protocol fee)
-    uint16 public constant PARTNER_FEE = 250; // 0.25% bonus for the partner/marketing agency if linked to a referrer (deduced from protocol fee)
-    uint16 public constant PARTNER_REFERRER_BONUS = 250; // 0.25% bonus for the referrer if linked to a partner (deduced from protocol fee)
+    uint16 public constant PARTNER_FEE = 2500; // 0.25% bonus for the partner/marketing agency if linked to a referrer (deduced from protocol fee)
+    uint16 public constant PARTNER_REFERRER_BONUS = 2500; // 0.25% bonus for the referrer if linked to a partner (deduced from protocol fee)
 
     bytes32 public constant CREDITS_TRANSFER_ROLE =
         keccak256("CREDITS_TRANSFER_ROLE");
