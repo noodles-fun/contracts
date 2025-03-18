@@ -30,6 +30,11 @@
     },
     {
       "inputs": [],
+      "name": "InvalidExecutionNonce",
+      "type": "error"
+    },
+    {
+      "inputs": [],
       "name": "InvalidExecutionState",
       "type": "error"
     },

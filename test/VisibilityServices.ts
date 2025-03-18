@@ -791,6 +791,22 @@ describe('VisibilityServices', function () {
         )
     })
 
+    it('Should revert on adding information context if execution is not initiated', async function () {
+      await loadFixture(deployFixture)
+      await expect(
+        visibilityServices
+          .connect(user1)
+          .addInformationForServiceExecution(
+            serviceNoncePaymentVisibilityCredits,
+            executionNonceServiceVisibilityCredits + 1,
+            'info Data'
+          )
+      ).to.be.revertedWithCustomError(
+        visibilityServices,
+        'InvalidExecutionNonce'
+      )
+    })
+
     it('Should revert if adding information request is not executed by creator, dispute resolver nor requester', async function () {
       await loadFixture(deployFixture)
       tx = await visibilityServices

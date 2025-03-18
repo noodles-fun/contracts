@@ -137,6 +137,7 @@ interface IVisibilityServices {
     error InvalidAddress();
     error InvalidBuyBackCreditsShare();
     error InvalidCreator();
+    error InvalidExecutionNonce();
     error InvalidExecutionState();
     error InvalidOriginator();
     error InvalidPaymentType();

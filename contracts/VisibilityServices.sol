@@ -312,6 +312,11 @@ contract VisibilityServices is
         VisibilityServicesStorage storage $ = _getVisibilityServicesStorage();
 
         Service storage service = $.services[serviceNonce];
+
+        // Validate that executionNonce exists
+        if (executionNonce >= service.executionsNonce)
+            revert InvalidExecutionNonce();
+
         Execution storage execution = service.executions[executionNonce];
 
         string memory visibilityId = service.visibilityId;
