@@ -59,6 +59,7 @@ interface IVisibilityCredits {
     error InvalidAmount();
     error NotEnoughEthSent();
     error NotEnoughCreditsOwned();
+    error SlippageError();
 
     function buyCredits(
         string calldata visibilityId,
@@ -69,6 +70,7 @@ interface IVisibilityCredits {
     function sellCredits(
         string calldata visibilityId,
         uint256 amount,
+        uint256 minExpectedWei,
         address inputReferrer
     ) external;
 

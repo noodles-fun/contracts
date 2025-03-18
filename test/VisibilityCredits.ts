@@ -197,9 +197,16 @@ describe('VisibilityCredits', function () {
         .buyCredits(visibilityId1, amount, referrer, { value: buyCost })
       await tx.wait()
 
+      const [reimbursement] = await creditsContract.sellCostWithFees(
+        visibilityId1,
+        amount,
+        user1,
+        referrer
+      )
+
       tx = await creditsContract
         .connect(user1)
-        .sellCredits(visibilityId1, amount, referrer)
+        .sellCredits(visibilityId1, amount, reimbursement, referrer)
       await tx.wait()
 
       const balance = await creditsContract.getVisibilityCreditBalance(
@@ -213,10 +220,30 @@ describe('VisibilityCredits', function () {
     it('Should revert if user tries to sell more credits than they own', async function () {
       await loadFixture(deployFixture)
 
+      const amount = BigInt('1000')
+      const [buyCost] = await creditsContract.buyCostWithFees(
+        visibilityId1,
+        amount,
+        user1,
+        ZeroAddress
+      )
+
+      let tx = await creditsContract
+        .connect(user1)
+        .buyCredits(visibilityId1, amount, ZeroAddress, { value: buyCost })
+      await tx.wait()
+
+      const [reimbursement] = await creditsContract.sellCostWithFees(
+        visibilityId1,
+        amount,
+        user1,
+        ZeroAddress
+      )
+
       await expect(
         creditsContract
-          .connect(user1)
-          .sellCredits(visibilityId1, parseEther('1'), ZeroAddress)
+          .connect(user2)
+          .sellCredits(visibilityId1, amount, reimbursement, ZeroAddress)
       ).to.be.revertedWithCustomError(creditsContract, 'NotEnoughCreditsOwned')
     })
 
@@ -255,7 +282,7 @@ describe('VisibilityCredits', function () {
 
         tx = await creditsContract
           .connect(user2)
-          .sellCredits(visibilityId1, amount, referrer.address)
+          .sellCredits(visibilityId1, amount, reimbursement, referrer.address)
         const { gasUsed, gasPrice } = (await tx.wait()) || {
           gasUsed: 0n,
           gasPrice: 0n
@@ -474,7 +501,7 @@ describe('VisibilityCredits', function () {
 
       tx = await creditsContract
         .connect(user2)
-        .sellCredits(visibilityId1, sellAmount, referrer)
+        .sellCredits(visibilityId1, sellAmount, reimbursement, referrer)
       await tx.wait()
 
       const contractBalanceAfterSell = await provider.getBalance(
@@ -654,7 +681,7 @@ describe('VisibilityCredits', function () {
 
       tx = await creditsContract
         .connect(user2)
-        .sellCredits(visibilityId1, sellAmount, ZeroAddress)
+        .sellCredits(visibilityId1, sellAmount, reimbursement, ZeroAddress)
       await tx.wait()
 
       const contractBalanceAfterSell = await provider.getBalance(
@@ -871,7 +898,7 @@ describe('VisibilityCredits', function () {
 
       tx = await creditsContract
         .connect(user2)
-        .sellCredits(visibilityId1, sellAmount, ZeroAddress)
+        .sellCredits(visibilityId1, sellAmount, reimbursement, ZeroAddress)
       await tx.wait()
 
       const contractBalanceAfterSell = await provider.getBalance(
@@ -1084,7 +1111,12 @@ describe('VisibilityCredits', function () {
 
       tx = await creditsContract
         .connect(user1)
-        .sellCredits(visibilityId1, minimalAmount, referrer.address)
+        .sellCredits(
+          visibilityId1,
+          minimalAmount,
+          reimbursement,
+          referrer.address
+        )
       const { gasUsed, gasPrice } = (await tx.wait()) || {
         gasUsed: 0n,
         gasPrice: 0n
@@ -1165,6 +1197,64 @@ describe('VisibilityCredits', function () {
             value: parseEther('99')
           })
       ).to.be.revertedWithCustomError(creditsContract, 'InvalidAmount')
+    })
+
+    it('Should protect users against slippage', async function () {
+      await loadFixture(deployFixture)
+
+      const amountToBuy = BigInt('1000')
+
+      // user1 & user2 expect both to buy 1000 for this amount
+      const [buyCost] = await creditsContract.buyCostWithFees(
+        visibilityId1,
+        amountToBuy,
+        user1,
+        referrer
+      )
+
+      let tx = await creditsContract
+        .connect(user1)
+        .buyCredits(visibilityId1, amountToBuy, referrer, { value: buyCost })
+      await tx.wait()
+
+      await expect(
+        creditsContract
+          .connect(user2)
+          .buyCredits(visibilityId1, amountToBuy, referrer, { value: buyCost })
+      ).to.be.revertedWithCustomError(creditsContract, 'NotEnoughEthSent')
+
+      const [buyCost2] = await creditsContract.buyCostWithFees(
+        visibilityId1,
+        amountToBuy,
+        user1,
+        referrer
+      )
+
+      tx = await creditsContract
+        .connect(user2)
+        .buyCredits(visibilityId1, amountToBuy, referrer, { value: buyCost2 })
+      await tx.wait()
+
+      const amountToSell = BigInt('400')
+
+      // user1 & user2 expect both to sell 400 for this amount
+      const [reimbursement] = await creditsContract.sellCostWithFees(
+        visibilityId1,
+        amountToSell,
+        creator1, // we don't really care about this value for this test
+        ZeroAddress
+      )
+
+      tx = await creditsContract
+        .connect(user2)
+        .sellCredits(visibilityId1, amountToSell, reimbursement, ZeroAddress)
+      await tx.wait()
+
+      await expect(
+        creditsContract
+          .connect(user1)
+          .sellCredits(visibilityId1, amountToSell, reimbursement, ZeroAddress)
+      ).to.be.revertedWithCustomError(creditsContract, 'SlippageError')
     })
   })
 

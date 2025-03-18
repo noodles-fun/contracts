@@ -128,10 +128,10 @@ contract VisibilityCredits is
     }
 
     /**
-     * @notice Buys a specified amount of visibility credits.
-     * @dev Users must send sufficient Ether to cover the cost from bonding curve + fees.
+     * @notice Buys a specified amount of visibility credits. `msg.value` represents the maximum ETH the user is willing to spend.
+     * @dev If the ETH required exceeds `msg.value`, the transaction will fail to prevent slippage risks.
      * @param visibilityId The ID representing the visibility credits.
-     * @param amount The amount of credits to buy.
+     * @param amount The exact number of credits to buy.
      * @param inputReferrer The address of the referrer (optional).
      */
     function buyCredits(
@@ -217,11 +217,13 @@ contract VisibilityCredits is
      * @dev Users receive Ether minus applicable fees.
      * @param visibilityId The ID representing the visibility credits.
      * @param amount The amount of credits to sell.
+     * @param minExpectedWei The minimum expected ETH amount to receive.
      * @param inputReferrer The address of the referrer (optional).
      */
     function sellCredits(
         string calldata visibilityId,
         uint256 amount,
+        uint256 minExpectedWei,
         address inputReferrer
     ) external nonReentrant {
         VisibilityCreditsStorage storage $ = _getVisibilityCreditsStorage();
@@ -248,6 +250,9 @@ contract VisibilityCredits is
             trade.protocolFee -
             trade.referrerFee -
             trade.partnerFee;
+
+        // Ensure the user receives at least their expected minimum ETH
+        if (reimbursement < minExpectedWei) revert SlippageError();
 
         totalSupply -= amount;
 

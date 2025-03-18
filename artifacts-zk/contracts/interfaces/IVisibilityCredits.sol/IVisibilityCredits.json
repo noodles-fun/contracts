@@ -29,6 +29,11 @@
       "type": "error"
     },
     {
+      "inputs": [],
+      "name": "SlippageError",
+      "type": "error"
+    },
+    {
       "anonymous": false,
       "inputs": [
         {
@@ -530,6 +535,11 @@
         {
           "internalType": "uint256",
           "name": "amount",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "minExpectedWei",
           "type": "uint256"
         },
         {
