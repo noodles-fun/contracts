@@ -604,6 +604,20 @@ describe('VisibilityServices', function () {
       )
     })
 
+    it('Should revert if value is sent for a service paid with credits', async function () {
+      await loadFixture(deployFixture)
+
+      await expect(
+        visibilityServices
+          .connect(user1)
+          .requestServiceExecution(
+            serviceNoncePaymentVisibilityCredits,
+            'Request Data',
+            { value: parseEther('0.01') }
+          )
+      ).to.be.revertedWithCustomError(visibilityServices, 'InvalidValue')
+    })
+
     it('Should not allow requesting execution on a disabled service', async function () {
       await loadFixture(deployFixture)
       tx = await visibilityServices

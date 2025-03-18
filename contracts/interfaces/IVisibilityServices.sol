@@ -134,6 +134,7 @@ interface IVisibilityServices {
     );
 
     error DisabledService();
+    error InsufficientValue();
     error InvalidAddress();
     error InvalidBuyBackCreditsShare();
     error InvalidCreator();
@@ -143,7 +144,7 @@ interface IVisibilityServices {
     error InvalidPaymentType();
     error InvalidPayloadDataSize();
     error InvalidProtocolTreasury();
-    error InsufficientValue();
+    error InvalidValue();
     error QuoteSlippage();
     error UnauthorizedExecutionAction();
 

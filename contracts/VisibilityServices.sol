@@ -264,6 +264,9 @@ contract VisibilityServices is
         service.executionsNonce += 1;
 
         if (paymentType == PaymentType.VISIBILITY_CREDITS) {
+            // Ensure the user has not mistakenly sent ETH
+            if (msg.value != 0) revert InvalidValue();
+
             /// @dev it reverts if not enough credits
             $.visibilityCredits.transferCredits(
                 service.visibilityId,

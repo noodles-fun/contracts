@@ -60,6 +60,11 @@
     },
     {
       "inputs": [],
+      "name": "InvalidValue",
+      "type": "error"
+    },
+    {
+      "inputs": [],
       "name": "QuoteSlippage",
       "type": "error"
     },
