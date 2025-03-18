@@ -1946,6 +1946,26 @@ describe('VisibilityServices', function () {
     })
   })
 
+  describe('Request data size limit', function () {
+    it('Should revert if request data is too large', async () => {
+      await loadFixture(deployFixture)
+
+      const largeData = 'a'.repeat(2050)
+
+      await expect(
+        visibilityServices
+          .connect(user1)
+          .requestServiceExecution(
+            serviceNoncePaymentVisibilityCredits,
+            largeData
+          )
+      ).to.be.revertedWithCustomError(
+        visibilityServices,
+        'InvalidPayloadDataSize'
+      )
+    })
+  })
+
   describe('Upgrade simulation', function () {
     it('Should succeed V1 to V2 upgrade', async () => {
       provider = await getProvider()

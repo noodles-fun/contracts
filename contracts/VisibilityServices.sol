@@ -33,6 +33,8 @@ contract VisibilityServices is
     uint32 public constant FEE_DENOMINATOR = 1_000_000; // Using parts per million (ppm)
     uint32 public constant PROTOCOL_FEE = 20_000; // 2% base fee (does not include protocol fee on buy back)
 
+    uint256 constant MAX_STRING_SIZE = 2048; // 2KB max size for string payloads
+
     /// @custom:storage-location erc7201:noodles.VisibilityServices
     struct VisibilityServicesStorage {
         IVisibilityCredits visibilityCredits;
@@ -241,6 +243,10 @@ contract VisibilityServices is
         uint256 serviceNonce,
         string calldata requestData
     ) external payable {
+        if (bytes(requestData).length > MAX_STRING_SIZE) {
+            revert InvalidPayloadDataSize();
+        }
+
         VisibilityServicesStorage storage $ = _getVisibilityServicesStorage();
 
         Service storage service = $.services[serviceNonce];
@@ -299,6 +305,10 @@ contract VisibilityServices is
         uint256 executionNonce,
         string calldata informationData
     ) external {
+        if (bytes(informationData).length > MAX_STRING_SIZE) {
+            revert InvalidPayloadDataSize();
+        }
+
         VisibilityServicesStorage storage $ = _getVisibilityServicesStorage();
 
         Service storage service = $.services[serviceNonce];
@@ -340,6 +350,10 @@ contract VisibilityServices is
         uint256 executionNonce,
         string calldata responseData
     ) external {
+        if (bytes(responseData).length > MAX_STRING_SIZE) {
+            revert InvalidPayloadDataSize();
+        }
+
         VisibilityServicesStorage storage $ = _getVisibilityServicesStorage();
 
         Service storage service = $.services[serviceNonce];
@@ -374,6 +388,10 @@ contract VisibilityServices is
         uint256 executionNonce,
         string calldata cancelData
     ) external {
+        if (bytes(cancelData).length > MAX_STRING_SIZE) {
+            revert InvalidPayloadDataSize();
+        }
+
         VisibilityServicesStorage storage $ = _getVisibilityServicesStorage();
 
         Service storage service = $.services[serviceNonce];
@@ -448,6 +466,9 @@ contract VisibilityServices is
         uint256 executionNonce,
         string calldata disputeData
     ) external {
+        if (bytes(disputeData).length > MAX_STRING_SIZE) {
+            revert InvalidPayloadDataSize();
+        }
         VisibilityServicesStorage storage $ = _getVisibilityServicesStorage();
 
         Service storage service = $.services[serviceNonce];
@@ -482,6 +503,9 @@ contract VisibilityServices is
         bool refund,
         string calldata resolveData
     ) external onlyRole(DISPUTE_RESOLVER_ROLE) {
+        if (bytes(resolveData).length > MAX_STRING_SIZE) {
+            revert InvalidPayloadDataSize();
+        }
         VisibilityServicesStorage storage $ = _getVisibilityServicesStorage();
 
         Service storage service = $.services[serviceNonce];
@@ -511,6 +535,8 @@ contract VisibilityServices is
 
     /**
      * @notice Updates the status of an existing service. Can only be called by the service originator.
+     * @dev Disabling a service will prevent new executions but will not affect ongoing executions.
+     *      A disabled service can be re-enabled.
      *
      * @param serviceNonce The ID of the service to update.
      * @param enabled The new status of the service (true for enabled, false for disabled).

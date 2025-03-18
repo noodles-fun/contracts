@@ -140,6 +140,7 @@ interface IVisibilityServices {
     error InvalidExecutionState();
     error InvalidOriginator();
     error InvalidPaymentType();
+    error InvalidPayloadDataSize();
     error InvalidProtocolTreasury();
     error InsufficientValue();
     error QuoteSlippage();

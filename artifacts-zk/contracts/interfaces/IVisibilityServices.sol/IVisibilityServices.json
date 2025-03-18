@@ -40,6 +40,11 @@
     },
     {
       "inputs": [],
+      "name": "InvalidPayloadDataSize",
+      "type": "error"
+    },
+    {
+      "inputs": [],
       "name": "InvalidPaymentType",
       "type": "error"
     },
