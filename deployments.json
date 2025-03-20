@@ -42,7 +42,7 @@
       "proxy": "0x25aaca9fD684CD710BB87bd8f87A2a9F20e5a269"
     },
     "VisibilityServices": {
-      "implementation": "0x58Cee5a5EC82719aEDD51877991b2815A613A04d",
+      "implementation": "0xda94643524836128682684F28f5086E5b2B699f1",
       "proxyAdmin": "0xE4416dd979842A96A2688DD996069509A57a54a0",
       "proxy": "0x446aC2A937b7ef299402D97a9132CD2ce7Ff73b1"
     }

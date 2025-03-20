@@ -457,7 +457,7 @@ contract VisibilityServices is
         execution.state = ExecutionState.VALIDATED;
         execution.lastUpdateTimestamp = block.timestamp;
 
-        _proceedValidation(serviceNonce);
+        _proceedValidation(serviceNonce, executionNonce);
 
         emit ServiceExecutionValidated(serviceNonce, executionNonce);
     }
@@ -528,7 +528,7 @@ contract VisibilityServices is
             _proceedRefund(serviceNonce, execution.requester);
         } else {
             execution.state = ExecutionState.VALIDATED;
-            _proceedValidation(serviceNonce);
+            _proceedValidation(serviceNonce, executionNonce);
         }
 
         execution.lastUpdateTimestamp = block.timestamp;
@@ -731,7 +731,10 @@ contract VisibilityServices is
         }
     }
 
-    function _proceedValidation(uint256 serviceNonce) private {
+    function _proceedValidation(
+        uint256 serviceNonce,
+        uint256 executionNonce
+    ) private {
         VisibilityServicesStorage storage $ = _getVisibilityServicesStorage();
 
         Service storage service = $.services[serviceNonce];
@@ -778,6 +781,7 @@ contract VisibilityServices is
 
             emit ServiceExecutionEthPayment(
                 serviceNonce,
+                executionNonce,
                 protocolAmount,
                 creatorAmount,
                 buyBackAmount

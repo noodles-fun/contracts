@@ -78,23 +78,33 @@ export default async function (hre: HardhatRuntimeEnvironment) {
   )
   console.log('VisibilityCredits upgraded to ', vcImplementationAddress)
 
+  /*
   try {
-    console.log('Verifying implementations contracts...')
-
-    /*
+    console.log('Verifying PointsSBT implementations contracts...')
     await verifyContract({
       address: psImplementationAddress
     })
+  } catch (e) {
+    console.log(`Error verifying PointsSBT contract: ${e}`)
+  }
 */
+
+  try {
+    console.log('Verifying VisibilityCredits implementations contracts...')
     await verifyContract({
       address: vcImplementationAddress
     })
+  } catch (e) {
+    console.log(`Error verifying VisibilityCredits contract: ${e}`)
+  }
 
+  try {
+    console.log('Verifying VisibilityServices implementations contracts...')
     await verifyContract({
       address: vsImplementationAddress
     })
   } catch (e) {
-    console.log(`Error verifying contract: ${e}`)
+    console.log(`Error verifying VisibilityServices contract: ${e}`)
   }
 
   deployments[hre.network.config.chainId as number] = {

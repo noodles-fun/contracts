@@ -115,6 +115,7 @@ interface IVisibilityServices {
 
     event ServiceExecutionEthPayment(
         uint256 indexed serviceNonce,
+        uint256 indexed executionNonce,
         uint256 protocolAmount,
         uint256 creatorAmount,
         uint256 buyBackAmount

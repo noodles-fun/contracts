@@ -1774,6 +1774,7 @@ describe('VisibilityServices', function () {
         .to.emit(visibilityServices, 'ServiceExecutionEthPayment')
         .withArgs(
           serviceNoncePaymentVisibilityETH,
+          executionNonceServiceVisibilityETH,
           expectedProtocolFee,
           expectedCreatorFee,
           expectedBuyBackFee
