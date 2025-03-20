@@ -4,15 +4,15 @@ pragma solidity ^0.8.20;
 import "@openzeppelin/contracts/utils/Address.sol";
 import "@openzeppelin/contracts-upgradeable/access/extensions/AccessControlDefaultAdminRulesUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/utils/ReentrancyGuardUpgradeable.sol";
-import "./interfaces/IVisibilityCredits.sol";
+import "./IVisibilityCreditsV1.sol";
 
 /**
  * @title VisibilityCredits
  * @notice Allows users to buy and sell visibility credits along a bonding curve.
  * @dev Users can spend these credits for ad purposes.
  */
-contract VisibilityCredits is
-    IVisibilityCredits,
+contract VisibilityCreditsV1 is
+    IVisibilityCreditsV1,
     AccessControlDefaultAdminRulesUpgradeable,
     ReentrancyGuardUpgradeable
 {
@@ -37,8 +37,8 @@ contract VisibilityCredits is
     uint16 public constant CREATOR_FEE = 20_000; // 2% fee to the creator for each trade
     uint16 public constant PROTOCOL_FEE = 30_000; // 3% base fee, should be higher than referrer fee + partner fee + referral bonus fee
     uint16 public constant REFERRER_FEE = 10_000; // 1% fee to the referrer (if any, deduced from protocol fee)
-    uint16 public constant PARTNER_FEE = 2500; // 0.25% bonus for the partner/marketing agency if linked to a referrer (deduced from protocol fee)
-    uint16 public constant PARTNER_REFERRER_BONUS = 2500; // 0.25% bonus for the referrer if linked to a partner (deduced from protocol fee)
+    uint16 public constant PARTNER_FEE = 250; // 0.25% bonus for the partner/marketing agency if linked to a referrer (deduced from protocol fee)
+    uint16 public constant PARTNER_REFERRER_BONUS = 250; // 0.25% bonus for the referrer if linked to a partner (deduced from protocol fee)
 
     bytes32 public constant CREDITS_TRANSFER_ROLE =
         keccak256("CREDITS_TRANSFER_ROLE");
@@ -128,10 +128,10 @@ contract VisibilityCredits is
     }
 
     /**
-     * @notice Buys a specified amount of visibility credits. `msg.value` represents the maximum ETH the user is willing to spend.
-     * @dev If the ETH required exceeds `msg.value`, the transaction will fail to prevent slippage risks.
+     * @notice Buys a specified amount of visibility credits.
+     * @dev Users must send sufficient Ether to cover the cost from bonding curve + fees.
      * @param visibilityId The ID representing the visibility credits.
-     * @param amount The exact number of credits to buy.
+     * @param amount The amount of credits to buy.
      * @param inputReferrer The address of the referrer (optional).
      */
     function buyCredits(
@@ -217,13 +217,11 @@ contract VisibilityCredits is
      * @dev Users receive Ether minus applicable fees.
      * @param visibilityId The ID representing the visibility credits.
      * @param amount The amount of credits to sell.
-     * @param minExpectedWei The minimum expected ETH amount to receive.
      * @param inputReferrer The address of the referrer (optional).
      */
     function sellCredits(
         string calldata visibilityId,
         uint256 amount,
-        uint256 minExpectedWei,
         address inputReferrer
     ) external nonReentrant {
         VisibilityCreditsStorage storage $ = _getVisibilityCreditsStorage();
@@ -250,9 +248,6 @@ contract VisibilityCredits is
             trade.protocolFee -
             trade.referrerFee -
             trade.partnerFee;
-
-        // Ensure the user receives at least their expected minimum ETH
-        if (reimbursement < minExpectedWei) revert SlippageError();
 
         totalSupply -= amount;
 

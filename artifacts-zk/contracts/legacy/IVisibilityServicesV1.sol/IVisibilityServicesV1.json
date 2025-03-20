@@ -1,16 +1,11 @@
 {
   "_format": "hh-zksolc-artifact-1",
-  "contractName": "IVisibilityServices",
-  "sourceName": "contracts/interfaces/IVisibilityServices.sol",
+  "contractName": "IVisibilityServicesV1",
+  "sourceName": "contracts/legacy/IVisibilityServicesV1.sol",
   "abi": [
     {
       "inputs": [],
       "name": "DisabledService",
-      "type": "error"
-    },
-    {
-      "inputs": [],
-      "name": "InsufficientValue",
       "type": "error"
     },
     {
@@ -20,17 +15,7 @@
     },
     {
       "inputs": [],
-      "name": "InvalidBuyBackCreditsShare",
-      "type": "error"
-    },
-    {
-      "inputs": [],
       "name": "InvalidCreator",
-      "type": "error"
-    },
-    {
-      "inputs": [],
-      "name": "InvalidExecutionNonce",
       "type": "error"
     },
     {
@@ -45,102 +30,8 @@
     },
     {
       "inputs": [],
-      "name": "InvalidPayloadDataSize",
-      "type": "error"
-    },
-    {
-      "inputs": [],
-      "name": "InvalidPaymentType",
-      "type": "error"
-    },
-    {
-      "inputs": [],
-      "name": "InvalidProtocolTreasury",
-      "type": "error"
-    },
-    {
-      "inputs": [],
-      "name": "InvalidValue",
-      "type": "error"
-    },
-    {
-      "inputs": [],
-      "name": "QuoteSlippage",
-      "type": "error"
-    },
-    {
-      "inputs": [],
       "name": "UnauthorizedExecutionAction",
       "type": "error"
-    },
-    {
-      "anonymous": false,
-      "inputs": [
-        {
-          "indexed": false,
-          "internalType": "string",
-          "name": "visibilityId",
-          "type": "string"
-        },
-        {
-          "indexed": false,
-          "internalType": "uint256",
-          "name": "totalWeiCost",
-          "type": "uint256"
-        },
-        {
-          "indexed": false,
-          "internalType": "uint256",
-          "name": "creditsAmount",
-          "type": "uint256"
-        }
-      ],
-      "name": "BuyBack",
-      "type": "event"
-    },
-    {
-      "anonymous": false,
-      "inputs": [
-        {
-          "indexed": false,
-          "internalType": "string",
-          "name": "visibilityId",
-          "type": "string"
-        },
-        {
-          "indexed": false,
-          "internalType": "bool",
-          "name": "isBuyBack",
-          "type": "bool"
-        },
-        {
-          "indexed": false,
-          "internalType": "uint256",
-          "name": "weiAmount",
-          "type": "uint256"
-        }
-      ],
-      "name": "BuyBackPoolUpdated",
-      "type": "event"
-    },
-    {
-      "anonymous": false,
-      "inputs": [
-        {
-          "indexed": true,
-          "internalType": "uint256",
-          "name": "nonce",
-          "type": "uint256"
-        },
-        {
-          "indexed": false,
-          "internalType": "uint256",
-          "name": "buyBackCreditsShare",
-          "type": "uint256"
-        }
-      ],
-      "name": "ServiceBuyBackUpdated",
-      "type": "event"
     },
     {
       "anonymous": false,
@@ -258,37 +149,6 @@
         }
       ],
       "name": "ServiceExecutionDisputed",
-      "type": "event"
-    },
-    {
-      "anonymous": false,
-      "inputs": [
-        {
-          "indexed": true,
-          "internalType": "uint256",
-          "name": "serviceNonce",
-          "type": "uint256"
-        },
-        {
-          "indexed": false,
-          "internalType": "uint256",
-          "name": "protocolAmount",
-          "type": "uint256"
-        },
-        {
-          "indexed": false,
-          "internalType": "uint256",
-          "name": "creatorAmount",
-          "type": "uint256"
-        },
-        {
-          "indexed": false,
-          "internalType": "uint256",
-          "name": "buyBackAmount",
-          "type": "uint256"
-        }
-      ],
-      "name": "ServiceExecutionEthPayment",
       "type": "event"
     },
     {
@@ -441,49 +301,6 @@
       "type": "event"
     },
     {
-      "anonymous": false,
-      "inputs": [
-        {
-          "indexed": true,
-          "internalType": "address",
-          "name": "originator",
-          "type": "address"
-        },
-        {
-          "indexed": true,
-          "internalType": "uint256",
-          "name": "nonce",
-          "type": "uint256"
-        },
-        {
-          "indexed": false,
-          "internalType": "string",
-          "name": "serviceType",
-          "type": "string"
-        },
-        {
-          "indexed": false,
-          "internalType": "string",
-          "name": "visibilityId",
-          "type": "string"
-        },
-        {
-          "indexed": false,
-          "internalType": "uint256",
-          "name": "buyBackCreditsShare",
-          "type": "uint256"
-        },
-        {
-          "indexed": false,
-          "internalType": "uint256",
-          "name": "weiCostAmount",
-          "type": "uint256"
-        }
-      ],
-      "name": "ServiceWithETHCreated",
-      "type": "event"
-    },
-    {
       "inputs": [
         {
           "internalType": "uint256",
@@ -532,29 +349,6 @@
     {
       "inputs": [
         {
-          "internalType": "string",
-          "name": "visibilityId",
-          "type": "string"
-        },
-        {
-          "internalType": "uint256",
-          "name": "creditsAmount",
-          "type": "uint256"
-        },
-        {
-          "internalType": "uint256",
-          "name": "maxWeiAmount",
-          "type": "uint256"
-        }
-      ],
-      "name": "buyBack",
-      "outputs": [],
-      "stateMutability": "nonpayable",
-      "type": "function"
-    },
-    {
-      "inputs": [
-        {
           "internalType": "uint256",
           "name": "serviceNonce",
           "type": "uint256"
@@ -584,7 +378,7 @@
         },
         {
           "internalType": "uint256",
-          "name": "costAmount",
+          "name": "creditsCostAmount",
           "type": "uint256"
         }
       ],
@@ -612,34 +406,6 @@
         }
       ],
       "name": "createService",
-      "outputs": [],
-      "stateMutability": "nonpayable",
-      "type": "function"
-    },
-    {
-      "inputs": [
-        {
-          "internalType": "string",
-          "name": "serviceType",
-          "type": "string"
-        },
-        {
-          "internalType": "string",
-          "name": "visibilityId",
-          "type": "string"
-        },
-        {
-          "internalType": "uint256",
-          "name": "buyBackCreditsShare",
-          "type": "uint256"
-        },
-        {
-          "internalType": "uint256",
-          "name": "weiCostAmount",
-          "type": "uint256"
-        }
-      ],
-      "name": "createServiceWithETH",
       "outputs": [],
       "stateMutability": "nonpayable",
       "type": "function"
@@ -701,26 +467,6 @@
           "internalType": "uint256",
           "name": "executionsNonce",
           "type": "uint256"
-        },
-        {
-          "internalType": "address",
-          "name": "originator",
-          "type": "address"
-        },
-        {
-          "internalType": "uint256",
-          "name": "weiCostAmount",
-          "type": "uint256"
-        },
-        {
-          "internalType": "uint256",
-          "name": "buyBackCreditsShare",
-          "type": "uint256"
-        },
-        {
-          "internalType": "enum IVisibilityServices.PaymentType",
-          "name": "paymentType",
-          "type": "uint8"
         }
       ],
       "stateMutability": "view",
@@ -742,7 +488,7 @@
       "name": "getServiceExecution",
       "outputs": [
         {
-          "internalType": "enum IVisibilityServices.ExecutionState",
+          "internalType": "enum IVisibilityServicesV1.ExecutionState",
           "name": "state",
           "type": "uint8"
         },
@@ -754,25 +500,6 @@
         {
           "internalType": "uint256",
           "name": "lastUpdateTimestamp",
-          "type": "uint256"
-        }
-      ],
-      "stateMutability": "view",
-      "type": "function"
-    },
-    {
-      "inputs": [
-        {
-          "internalType": "string",
-          "name": "visibilityId",
-          "type": "string"
-        }
-      ],
-      "name": "getVisibilityBuyBackEthBalance",
-      "outputs": [
-        {
-          "internalType": "uint256",
-          "name": "",
           "type": "uint256"
         }
       ],
@@ -807,7 +534,7 @@
       ],
       "name": "requestServiceExecution",
       "outputs": [],
-      "stateMutability": "payable",
+      "stateMutability": "nonpayable",
       "type": "function"
     },
     {
@@ -834,24 +561,6 @@
         }
       ],
       "name": "resolveServiceExecution",
-      "outputs": [],
-      "stateMutability": "nonpayable",
-      "type": "function"
-    },
-    {
-      "inputs": [
-        {
-          "internalType": "uint256",
-          "name": "serviceNonce",
-          "type": "uint256"
-        },
-        {
-          "internalType": "uint256",
-          "name": "buyBackCreditsShare",
-          "type": "uint256"
-        }
-      ],
-      "name": "updateBuyBackCreditsShare",
       "outputs": [],
       "stateMutability": "nonpayable",
       "type": "function"

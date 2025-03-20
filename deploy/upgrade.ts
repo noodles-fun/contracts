@@ -37,7 +37,7 @@ export default async function (hre: HardhatRuntimeEnvironment) {
     PointsSBT
   )
   await psUpgrade.waitForDeployment()
-
+*/
   const VisibilityCredits = await deployer.loadArtifact('VisibilityCredits')
   console.log('Upgrading VisibilityCredits...', {
     visibilityCreditsProxyAddr,
@@ -49,7 +49,6 @@ export default async function (hre: HardhatRuntimeEnvironment) {
     VisibilityCredits
   )
   await vcUpgrade.waitForDeployment()
-*/
 
   const VisibilityService = await deployer.loadArtifact('VisibilityServices')
   console.log('Upgrading VisibilityServices...', {
@@ -86,11 +85,11 @@ export default async function (hre: HardhatRuntimeEnvironment) {
     await verifyContract({
       address: psImplementationAddress
     })
-
+*/
     await verifyContract({
       address: vcImplementationAddress
     })
-*/
+
     await verifyContract({
       address: vsImplementationAddress
     })
@@ -133,12 +132,13 @@ export default async function (hre: HardhatRuntimeEnvironment) {
     process.env.ADMIN_ADDRESS,
     deployer.zkWallet
   )
+    */
   await hre.zkUpgrades.admin.transferProxyAdminOwnership(
     visibilityCreditsProxyAddr,
     process.env.ADMIN_ADDRESS,
     deployer.zkWallet
   )
-    */
+
   await hre.zkUpgrades.admin.transferProxyAdminOwnership(
     visibilityServicesProxyAddr,
     process.env.ADMIN_ADDRESS,

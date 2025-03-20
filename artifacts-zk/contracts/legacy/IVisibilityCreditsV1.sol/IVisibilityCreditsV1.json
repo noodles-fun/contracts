@@ -1,7 +1,7 @@
 {
   "_format": "hh-zksolc-artifact-1",
-  "contractName": "IVisibilityCredits",
-  "sourceName": "contracts/interfaces/IVisibilityCredits.sol",
+  "contractName": "IVisibilityCreditsV1",
+  "sourceName": "contracts/legacy/IVisibilityCreditsV1.sol",
   "abi": [
     {
       "inputs": [],
@@ -26,11 +26,6 @@
     {
       "inputs": [],
       "name": "NotEnoughEthSent",
-      "type": "error"
-    },
-    {
-      "inputs": [],
-      "name": "SlippageError",
       "type": "error"
     },
     {
@@ -156,7 +151,7 @@
             }
           ],
           "indexed": false,
-          "internalType": "struct IVisibilityCredits.CreditsTradeEvent",
+          "internalType": "struct IVisibilityCreditsV1.CreditsTradeEvent",
           "name": "tradeEvent",
           "type": "tuple"
         }
@@ -282,7 +277,7 @@
               "type": "address"
             }
           ],
-          "internalType": "struct IVisibilityCredits.Trade",
+          "internalType": "struct IVisibilityCreditsV1.Trade",
           "name": "trade",
           "type": "tuple"
         }
@@ -517,7 +512,7 @@
               "type": "address"
             }
           ],
-          "internalType": "struct IVisibilityCredits.Trade",
+          "internalType": "struct IVisibilityCreditsV1.Trade",
           "name": "trade",
           "type": "tuple"
         }
@@ -535,11 +530,6 @@
         {
           "internalType": "uint256",
           "name": "amount",
-          "type": "uint256"
-        },
-        {
-          "internalType": "uint256",
-          "name": "minExpectedWei",
           "type": "uint256"
         },
         {

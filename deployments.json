@@ -37,12 +37,12 @@
       "proxy": "0x53D523F98dFd0B4b8ADd9306D345d6e709AD6b18"
     },
     "VisibilityCredits": {
-      "implementation": "0x91AD8aFe286FF927d28C4991119aaD38106E8D1A",
+      "implementation": "0xC77094D7c71194c4ec763415a4e2a680DF06590D",
       "proxyAdmin": "0xa63Da4a2E94B13d95Ed71E30f5D53C6fd69036C6",
       "proxy": "0x25aaca9fD684CD710BB87bd8f87A2a9F20e5a269"
     },
     "VisibilityServices": {
-      "implementation": "0xfd544312B3D405461598b2D80810Fa7D497FD4dA",
+      "implementation": "0x58Cee5a5EC82719aEDD51877991b2815A613A04d",
       "proxyAdmin": "0xE4416dd979842A96A2688DD996069509A57a54a0",
       "proxy": "0x446aC2A937b7ef299402D97a9132CD2ce7Ff73b1"
     }
