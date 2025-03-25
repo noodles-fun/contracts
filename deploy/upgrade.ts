@@ -67,16 +67,6 @@ export default async function (hre: HardhatRuntimeEnvironment) {
     pointsSBTContractProxyAddr
   )
   console.log('PointsSBT upgraded to ', psImplementationAddress)
-  const vsImplementationAddress = await getImplementationAddress(
-    provider,
-    visibilityServicesProxyAddr
-  )
-  console.log('VisibilityServices upgraded to ', vsImplementationAddress)
-  const vcImplementationAddress = await getImplementationAddress(
-    provider,
-    visibilityCreditsProxyAddr
-  )
-  console.log('VisibilityCredits upgraded to ', vcImplementationAddress)
 
   /*
   try {
@@ -89,6 +79,12 @@ export default async function (hre: HardhatRuntimeEnvironment) {
   }
 */
 
+  const vcImplementationAddress = await getImplementationAddress(
+    provider,
+    visibilityCreditsProxyAddr
+  )
+  console.log('VisibilityCredits upgraded to ', vcImplementationAddress)
+
   try {
     console.log('Verifying VisibilityCredits implementations contracts...')
     await verifyContract({
@@ -97,6 +93,12 @@ export default async function (hre: HardhatRuntimeEnvironment) {
   } catch (e) {
     console.log(`Error verifying VisibilityCredits contract: ${e}`)
   }
+
+  const vsImplementationAddress = await getImplementationAddress(
+    provider,
+    visibilityServicesProxyAddr
+  )
+  console.log('VisibilityServices upgraded to ', vsImplementationAddress)
 
   try {
     console.log('Verifying VisibilityServices implementations contracts...')

@@ -13,12 +13,12 @@
       "proxy": "0xE19FF0aCF99fc4598003d34E8DF7b828849B9F48"
     },
     "VisibilityCredits": {
-      "implementation": "0x7CC2F6A7eDBB174F97d514516D3107F8c9064797",
+      "implementation": "0x11D877c86EB1BB461744aEa8320d1afeE721646e",
       "proxyAdmin": "0x974a17266E5e78906079230c8e4bD75656f71c1d",
       "proxy": "0x0DA6Bfd5d50edb31AF14C3A7820d28dB475Ec97D"
     },
     "VisibilityServices": {
-      "implementation": "0xBb05c34eEb02Ea51D3b0a12130abfFC231D77422",
+      "implementation": "0xa0515fe37b22862674dc44094e41eb902a7c265c",
       "proxyAdmin": "0x138DAE1cf816a926Ac118FC7d99C8552C6Ca735d",
       "proxy": "0x89e74F963e506D6921FF33cB75b53b963D7218bE"
     }
